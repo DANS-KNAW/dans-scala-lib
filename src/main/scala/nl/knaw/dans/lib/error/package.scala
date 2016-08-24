@@ -1,9 +1,10 @@
 package nl.knaw.dans.lib
 
-import scala.util.{Failure, Success, Try}
 import org.apache.commons.lang.exception.ExceptionUtils._
 
-import scala.collection.Iterable
+import scala.collection.generic.CanBuildFrom
+import scala.language.higherKinds
+import scala.util.{Failure, Success, Try}
 
 package object error {
 
@@ -19,7 +20,7 @@ package object error {
       (msg, t) => s"$msg\n${getMessage(t)} ${getStackTrace(t)}"
     ))
 
-  implicit class IterableTryExtensions[T](xs: Iterable[Try[T]]) {
+  implicit class IterableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Iterable[Try[T]]) {
     /**
      * Consolidates a list of `Try`s into either:
      *  - one `Success` with a list of `T`s or
@@ -47,10 +48,11 @@ package object error {
      *
      * @return a consolidated result
      */
-    def collectResults(): Try[Iterable[T]] =
+    def collectResults(implicit canBuildFrom: CanBuildFrom[Nothing, T, M[T]]): Try[M[T]] = {
       if (xs.exists(_.isFailure))
         Failure(new CompositeException(xs.collect { case Failure(e) => e }))
       else
-        Success(xs.map(_.get))
+        Success(xs.map(_.get).to(canBuildFrom))
+    }
   }
 }
