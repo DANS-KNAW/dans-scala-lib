@@ -29,23 +29,24 @@ package object error {
      *  Example:
      *  {{{
      *    import java.io.{File, FileNotFoundException}
-     *    import scala.util.{Failure, Success, Try}
      *    import nl.knaw.dans.lib.error._
+     *    import scala.util.{Failure, Success, Try}
      *
      *    def getFileLengths(files: List[File]): List[Try[Long]] =
-     *     files.map {case f =>
+     *     files.map(f =>
      *        if(f.exists) Success(f.length)
-     *        else Failure(new FileNotFoundException())
-     *     }
+     *        else Failure(new FileNotFoundException()))
      *
      *    // Fill in existing and/or non-existing file
      *    val someFileList = List(new File("x"), new File("y"), new File("z"))
      *
-     *    getFileLengths(someFileList).collectResults()
+     *    getFileLengths(someFileList).collectResults
      *      .map(_.mkString(", "))
      *      .recover { case t => println(t.getMessage) }
      *  }}}
      *
+     * @param canBuildFrom an implicit value of class `CanBuildFrom` which determines
+     *    the result class `M[T]` from the input type.
      * @return a consolidated result
      */
     def collectResults(implicit canBuildFrom: CanBuildFrom[Nothing, T, M[T]]): Try[M[T]] = {
