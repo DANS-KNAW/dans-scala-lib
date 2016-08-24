@@ -3,21 +3,23 @@ package nl.knaw.dans.lib
 import scala.util.{Failure, Success, Try}
 import org.apache.commons.lang.exception.ExceptionUtils._
 
+import scala.collection.Iterable
+
 package object error {
 
   /**
-   * An exception that bundles a list of `Throwables`.
+   * An exception that bundles a collection of `Throwable`s.
    *
-   * The exception message returns the concatenation of all the
+   * The exception message returns the concatenation of all the `Throwable`s' messages.
    *
-   * @param throwables
+   * @param throwables a collection of `Throwable`s
    */
-  class CompositeException(throwables: List[Throwable])
+  class CompositeException(throwables: Iterable[Throwable])
     extends RuntimeException(throwables.foldLeft("")(
       (msg, t) => s"$msg\n${getMessage(t)} ${getStackTrace(t)}"
     ))
 
-  implicit class ListTryExtensions[T](xs: List[Try[T]]) {
+  implicit class IterableTryExtensions[T](xs: Iterable[Try[T]]) {
     /**
      * Consolidates a list of `Try`s into either:
      *  - one `Success` with a list of `T`s or
@@ -45,7 +47,7 @@ package object error {
      *
      * @return a consolidated result
      */
-    def collectResults(): Try[List[T]] =
+    def collectResults(): Try[Iterable[T]] =
       if (xs.exists(_.isFailure))
         Failure(new CompositeException(xs.collect { case Failure(e) => e }))
       else
