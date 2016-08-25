@@ -1,7 +1,6 @@
-package nl.knaw.dans.lib
+package nl.knaw.dans.lib.error
 
 import org.scalatest.{FlatSpec, Matchers}
-import nl.knaw.dans.lib.error._
 
 import scala.collection.immutable.Range.Inclusive
 import scala.util.{Failure, Success, Try}
