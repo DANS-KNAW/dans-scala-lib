@@ -35,7 +35,8 @@ To use this libary in a Maven-based project:
             </repository>
         </repositories>
 
-2. Include a dependency on this library (but use the latest version!):
+2. Include a dependency on this library. The version should of course be
+   set to the latest version (or left out, if it is managed by an ancestor `pom.xml`).
 
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
