@@ -15,12 +15,12 @@ package object error {
    *
    * @param throwables a collection of `Throwable`s
    */
-  class CompositeException(throwables: Traversable[Throwable])
+  case class CompositeException(throwables: Traversable[Throwable])
     extends RuntimeException(throwables.foldLeft("")(
       (msg, t) => s"$msg\n${getMessage(t)} ${getStackTrace(t)}"
     ))
 
-  implicit class IterableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Traversable[Try[T]]) {
+  implicit class TraversableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Traversable[Try[T]]) {
     /**
      * Consolidates a list of `Try`s into either:
      *  - one `Success` with a list of `T`s or
@@ -51,7 +51,11 @@ package object error {
      */
     def collectResults(implicit canBuildFrom: CanBuildFrom[Nothing, T, M[T]]): Try[M[T]] = {
       if (xs.exists(_.isFailure))
-        Failure(new CompositeException(xs.collect { case Failure(e) => e }))
+        Failure(CompositeException(xs.flatMap {
+          case Success(_) => Traversable.empty
+          case Failure(CompositeException(ts)) => ts
+          case Failure(e) => Traversable(e)
+        }))
       else
         Success(xs.map(_.get).to(canBuildFrom))
     }
