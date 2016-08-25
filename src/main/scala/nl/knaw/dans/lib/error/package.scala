@@ -15,12 +15,12 @@ package object error {
    *
    * @param throwables a collection of `Throwable`s
    */
-  class CompositeException(throwables: Iterable[Throwable])
+  class CompositeException(throwables: Traversable[Throwable])
     extends RuntimeException(throwables.foldLeft("")(
       (msg, t) => s"$msg\n${getMessage(t)} ${getStackTrace(t)}"
     ))
 
-  implicit class IterableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Iterable[Try[T]]) {
+  implicit class IterableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Traversable[Try[T]]) {
     /**
      * Consolidates a list of `Try`s into either:
      *  - one `Success` with a list of `T`s or
