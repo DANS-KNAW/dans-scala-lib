@@ -76,4 +76,79 @@ package object error {
         Success(xs.map(_.get).to(canBuildFrom))
     }
   }
+
+  implicit class TrySideEffectExtensions[T](val t: Try[T]) extends AnyVal {
+    /**
+     * Applies the given side effecting function if and only if this is a `Success`.
+     *
+     * Example:
+     * {{{
+     *   import nl.knaw.dans.lib.error.TrySideEffectExtensions
+     *
+     *   import scala.util.{Failure, Success, Try}
+     *
+     *   def getFileLength(file: File): Try[Long] =
+     *     if (file.exists) Success(file.length)
+     *     else Failure(new FileNotFoundException())
+     *
+     *   def performSideEffect(size: Long): Unit = println(s"size = $size")
+     *
+     *   // Fill in existing or non-existing file
+     *   val file = new File("x")
+     *
+     *   getFileLength(file)
+     *     .ifSuccess(size => performSideEffect(size))
+     * }}}
+     *
+     * @param f the side effecting function to be applied
+     * @return the original `Try`
+     */
+    def ifSuccess(f: T => Unit): Try[T] = {
+      t match {
+        case success@Success(x) => Try {
+          f(x)
+          return success
+        }
+        case e => e
+      }
+    }
+
+    /**
+     * Applies the given side effecting `PartialFunction` if and only if this is a `Failure` and
+     * the `Throwable` is defined in the `PartialFunction`.
+     *
+     * Example:
+     * {{{
+     *   import nl.knaw.dans.lib.error.TrySideEffectExtensions
+     *
+     *   import scala.util.{Failure, Success, Try}
+     *
+     *   def getFileLength(file: File): Try[Long] =
+     *     if (file.exists) Success(file.length)
+     *     else Failure(new FileNotFoundException())
+     *
+     *   def performSideEffect(size: Long): Unit = println(s"size = $size")
+     *
+     *   // Fill in existing or non-existing file
+     *   val file = new File("x")
+     *
+     *   getFileLength(file)
+     *     .ifFailure {
+     *       case e: FileNotFoundException => println(e.getMessage)
+     *     }
+     * }}}
+     *
+     * @param f the side effecting function to be applied
+     * @return the original `Try`
+     */
+    def ifFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
+      t match {
+        case failure@Failure(e) if f.isDefinedAt(e) => Try {
+          f(e)
+          return failure
+        }
+        case x => x
+      }
+    }
+  }
 }
