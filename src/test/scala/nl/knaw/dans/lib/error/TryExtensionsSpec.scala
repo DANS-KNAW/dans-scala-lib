@@ -34,7 +34,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val sideEffectingBoolean = new AtomicBoolean(false)
 
     t.ifFailure {
-      case e: IllegalArgumentException => sideEffectingBoolean.set(true)
+      case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
     sideEffectingBoolean.get() shouldBe true
@@ -45,7 +45,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val sideEffectingBoolean = new AtomicBoolean(false)
 
     t.ifFailure {
-      case e: IllegalArgumentException => sideEffectingBoolean.set(true)
+      case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
     sideEffectingBoolean.get() shouldBe false
@@ -56,9 +56,44 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val sideEffectingBoolean = new AtomicBoolean(false)
 
     t.ifFailure {
-      case e: IllegalArgumentException => sideEffectingBoolean.set(true)
+      case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
     sideEffectingBoolean.get() shouldBe false
+  }
+
+  private case class OnErrorHelperException(defaultValue: Int) extends Exception("onError helper exception")
+
+  "onError" should "return the actual value when the Try is actually a Success" in {
+    val t: Try[Int] = Success(42)
+
+    val result = t.onError {
+      case OnErrorHelperException(default) => default
+      case _ => -99
+    }
+
+    result shouldBe 42
+  }
+
+  it should "be able to distinguish between various exception types using pattern matching on the lambda" in {
+    val t: Try[Int] = Failure(OnErrorHelperException(-42))
+
+    val result = t.onError {
+      case OnErrorHelperException(default) => default
+      case _ => -99
+    }
+
+    result shouldBe -42
+  }
+
+  it should "return the correct value when the Try is actually a Failure" in {
+    val t: Try[Int] = Failure(new NoSuchElementException())
+
+    val result = t.onError {
+      case OnErrorHelperException(default) => default
+      case _ => -99
+    }
+
+    result shouldBe -99
   }
 }

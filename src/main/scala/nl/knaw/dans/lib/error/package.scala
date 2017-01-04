@@ -77,13 +77,13 @@ package object error {
     }
   }
 
-  implicit class TrySideEffectExtensions[T](val t: Try[T]) extends AnyVal {
+  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
     /**
      * Applies the given side effecting function if and only if this is a `Success`.
      *
      * Example:
      * {{{
-     *   import nl.knaw.dans.lib.error.TrySideEffectExtensions
+     *   import nl.knaw.dans.lib.error.TryExtensions
      *
      *   import scala.util.{Failure, Success, Try}
      *
@@ -119,15 +119,13 @@ package object error {
      *
      * Example:
      * {{{
-     *   import nl.knaw.dans.lib.error.TrySideEffectExtensions
+     *   import nl.knaw.dans.lib.error.TryExtensions
      *
      *   import scala.util.{Failure, Success, Try}
      *
      *   def getFileLength(file: File): Try[Long] =
      *     if (file.exists) Success(file.length)
      *     else Failure(new FileNotFoundException())
-     *
-     *   def performSideEffect(size: Long): Unit = println(s"size = $size")
      *
      *   // Fill in existing or non-existing file
      *   val file = new File("x")
@@ -148,6 +146,40 @@ package object error {
           return failure
         }
         case x => x
+      }
+    }
+
+    /**
+     * Terminating operator for `Try` that converts the `Failure` case in a value.
+     *
+     * Example:
+     * {{{
+     *   import nl.knaw.dans.lib.error.TryExtensions
+     *
+     *   import scala.util.{Failure, Success, Try}
+     *
+     *   def getFileLength(file: File): Try[Long] =
+     *     if (file.exists) Success(file.length)
+     *     else Failure(new FileNotFoundException())
+     *
+     *   // Fill in existing or non-existing file
+     *   val file = new File("x")
+     *
+     *   getFileLength(file)
+     *     .onError {
+     *       // error codes
+     *       case _: FileNotFoundException => -1
+     *       case _ => -99
+     *     }
+     * }}}
+     *
+     * @param handle converts `Throwable` to a value of type `T`
+     * @return either the value inside `Try` (on success) or the result of `handle` (on failure)
+     */
+    def onError[S >: T](handle: Throwable => S): S = {
+      t match {
+        case Success(value) => value
+        case Failure(throwable) => handle(throwable)
       }
     }
   }
