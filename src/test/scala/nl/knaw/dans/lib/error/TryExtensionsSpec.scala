@@ -67,7 +67,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
   "onError" should "return the actual value when the Try is actually a Success" in {
     val t: Try[Int] = Success(42)
 
-    val result = t.onError {
+    val result = t.recoverFailure {
       case OnErrorHelperException(default) => default
       case _ => -99
     }
@@ -78,7 +78,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
   it should "be able to distinguish between various exception types using pattern matching on the lambda" in {
     val t: Try[Int] = Failure(OnErrorHelperException(-42))
 
-    val result = t.onError {
+    val result = t.recoverFailure {
       case OnErrorHelperException(default) => default
       case _ => -99
     }
@@ -89,7 +89,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
   it should "return the correct value when the Try is actually a Failure" in {
     val t: Try[Int] = Failure(new NoSuchElementException())
 
-    val result = t.onError {
+    val result = t.recoverFailure {
       case OnErrorHelperException(default) => default
       case _ => -99
     }
