@@ -131,7 +131,7 @@ package object error {
      *   val file = new File("x")
      *
      *   getFileLength(file)
-     *     .ifSuccess(size => performSideEffect(size))
+     *     .doIfSuccess(size => performSideEffect(size))
      * }}}
      *
      * @param f the side effecting function to be applied
@@ -165,7 +165,7 @@ package object error {
      *   val file = new File("x")
      *
      *   getFileLength(file)
-     *     .ifFailure {
+     *     .doIfFailure {
      *       case e: FileNotFoundException => println(e.getMessage)
      *     }
      * }}}
