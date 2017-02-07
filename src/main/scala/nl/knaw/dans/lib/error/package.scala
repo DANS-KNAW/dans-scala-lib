@@ -166,7 +166,7 @@ package object error {
      *   val file = new File("x")
      *
      *   getFileLength(file)
-     *     .recoverFailure {
+     *     .getOrRecover {
      *       // error codes
      *       case _: FileNotFoundException => -1
      *       case _ => -99
@@ -176,7 +176,7 @@ package object error {
      * @param handle converts `Throwable` to a value of type `T`
      * @return either the value inside `Try` (on success) or the result of `handle` (on failure)
      */
-    def recoverFailure[S >: T](handle: Throwable => S): S = {
+    def getOrRecover[S >: T](handle: Throwable => S): S = {
       t match {
         case Success(value) => value
         case Failure(throwable) => handle(throwable)
