@@ -137,7 +137,7 @@ package object error {
      * @param f the side effecting function to be applied
      * @return the original `Try`
      */
-    def ifSuccess(f: T => Unit): Try[T] = {
+    def doIfSuccess(f: T => Unit): Try[T] = {
       t match {
         case success @ Success(x) => Try {
           f(x)
@@ -173,7 +173,7 @@ package object error {
      * @param f the side effecting function to be applied
      * @return the original `Try`
      */
-    def ifFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
+    def doIfFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
       t match {
         case failure @ Failure(e) if f.isDefinedAt(e) => Try {
           f(e)

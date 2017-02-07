@@ -8,14 +8,14 @@ import scala.util.{Failure, Success, Try}
 
 class TryExtensionsSpec extends FlatSpec with Matchers {
 
-  "ifSuccess" should "perform a side effect if the Try is a Success" in {
+  "doIfSuccess" should "perform a side effect if the Try is a Success" in {
     val value = 42
     val t: Try[Int] = Success(value)
     val sideEffectingInteger = new AtomicInteger()
 
     sideEffectingInteger.get() should not be value
 
-    t.ifSuccess(sideEffectingInteger.set)
+    t.doIfSuccess(sideEffectingInteger.set)
 
     sideEffectingInteger.get() shouldBe value
   }
@@ -24,16 +24,16 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val t: Try[Int] = Failure(new IllegalArgumentException("foobar"))
     val sideEffectingBoolean = new AtomicBoolean(false)
 
-    t.ifSuccess(_ => sideEffectingBoolean.set(true))
+    t.doIfSuccess(_ => sideEffectingBoolean.set(true))
 
     sideEffectingBoolean.get() shouldBe false
   }
 
-  "ifFailure" should "perform a side effect only if the Throwable in the Try is defined in the PartialFunction" in {
+  "doIfFailure" should "perform a side effect only if the Throwable in the Try is defined in the PartialFunction" in {
     val t: Try[Int] = Failure(new IllegalArgumentException("foobar"))
     val sideEffectingBoolean = new AtomicBoolean(false)
 
-    t.ifFailure {
+    t.doIfFailure {
       case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
@@ -44,7 +44,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val t: Try[Int] = Failure(new NoSuchElementException("foobar"))
     val sideEffectingBoolean = new AtomicBoolean(false)
 
-    t.ifFailure {
+    t.doIfFailure {
       case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
@@ -55,7 +55,7 @@ class TryExtensionsSpec extends FlatSpec with Matchers {
     val t: Try[Int] = Success(42)
     val sideEffectingBoolean = new AtomicBoolean(false)
 
-    t.ifFailure {
+    t.doIfFailure {
       case _: IllegalArgumentException => sideEffectingBoolean.set(true)
     }
 
