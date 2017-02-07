@@ -41,7 +41,7 @@ package object error {
      *  - one `Success` with a list of `T`s or
      *  - a `Failure` with a [[CompositeException]] containing a list of exceptions.
      *
-     *  Example:
+     *  @example
      *  {{{
      *    import java.io.{File, FileNotFoundException}
      *    import nl.knaw.dans.lib.error._
@@ -77,14 +77,36 @@ package object error {
     }
   }
 
-  // TODO test this carefully!!! Is this really what we expect it to be in all circumstances?
-  implicit class StreamCollectResults[T](val stream: Stream[Try[T]]) {
+  implicit class FailFastStream[T](val stream: Stream[Try[T]]) {
+    /**
+     * Evaluates a `Stream` of `Try`s into either:
+     *  - one `Success` with a stream of `T`s or
+     *  - a `Failure` with the first exception contained in the stream
+     *
+     * Note that when the `Stream` encounters a `Failure`, the remaining elements are not evaluated.
+     * The `Failure` is returned immediately.
+     *
+     * @example
+     * {{{
+     *   import nl.knaw.dans.lib.error._
+     *
+     *   import scala.util.Try
+     *
+     *   def f(i: Int) = {
+     *     if (i <= 2) i
+     *     else throw new Exception(s"$i is larger than 2")
+     *   }
+     *
+     *   val stream: Try[Stream[Int]] = (0 to 5).toStream.map(i => Try(f(i))).failFast
+     *   println(stream)
+     *   // prints: Failure(java.lang.Exception: 3 is larger than 2)
+     * }}}
+     *
+     * @return a evaluated result
+     */
     def failFast: Try[Stream[T]] = {
       stream.find(_.isFailure)
-        .map {
-          case Failure(e) => Failure(e)
-          case Success(s) => Failure(new IllegalArgumentException(s"Success should never occur here, but got Success($s)"))
-        }
+        .map(_.flatMap(s => Failure(new IllegalArgumentException(s"Success should never occur here, but got Success($s)"))))
         .getOrElse(Success(stream.map(_.get)))
     }
   }
