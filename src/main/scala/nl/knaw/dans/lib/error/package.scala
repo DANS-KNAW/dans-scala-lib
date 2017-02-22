@@ -94,7 +94,7 @@ package object error {
      *
      *   def f(i: Int) = {
      *     if (i <= 2) i
-     *     else throw new Exception(s"$i is larger than 2")
+     *     else throw new Exception(s"$$i is larger than 2")
      *   }
      *
      *   val stream: Try[Stream[Int]] = (0 to 5).toStream.map(i => Try(f(i))).failFast
@@ -125,7 +125,7 @@ package object error {
      *     if (file.exists) Success(file.length)
      *     else Failure(new FileNotFoundException())
      *
-     *   def performSideEffect(size: Long): Unit = println(s"size = $size")
+     *   def performSideEffect(size: Long): Unit = println(s"size = $$size")
      *
      *   // Fill in existing or non-existing file
      *   val file = new File("x")
