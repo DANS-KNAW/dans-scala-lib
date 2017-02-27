@@ -86,6 +86,8 @@ package object error {
      * Note that when the `Stream` encounters a `Failure`, the remaining elements are not evaluated.
      * The `Failure` is returned immediately.
      *
+     * Note that if the `Stream` is infinite, this method will run for ever!
+     *
      * @example
      * {{{
      *   import nl.knaw.dans.lib.error._
@@ -137,7 +139,7 @@ package object error {
      * @param f the side effecting function to be applied
      * @return the original `Try`
      */
-    def doIfSuccess(f: T => Unit): Try[T] = {
+    def doIfSuccess[A](f: T => A): Try[T] = {
       t match {
         case success @ Success(x) => Try {
           f(x)
@@ -173,7 +175,7 @@ package object error {
      * @param f the side effecting function to be applied
      * @return the original `Try`
      */
-    def doIfFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
+    def doIfFailure[A](f: PartialFunction[Throwable, A]): Try[T] = {
       t match {
         case failure @ Failure(e) if f.isDefinedAt(e) => Try {
           f(e)
