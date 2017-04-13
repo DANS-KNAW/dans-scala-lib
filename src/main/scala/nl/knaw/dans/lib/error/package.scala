@@ -100,16 +100,16 @@ package object error {
      *     .doIfSuccess(size => performSideEffect(size))
      * }}}
      *
-     * @param f the side effecting function to be applied
+     * @param sideEffect the side effecting function to be applied
      * @return the original `Try`
      */
-    def doIfSuccess[A](f: T => A): Try[T] = {
+    def doIfSuccess[A](sideEffect: T => A): Try[T] = {
       t match {
-        case success @ Success(x) => Try {
-          f(x)
-          return success
+        case Success(value) => Try {
+          sideEffect(value)
+          value
         }
-        case e => e
+        case failure => failure
       }
     }
 
@@ -136,16 +136,16 @@ package object error {
      *     }
      * }}}
      *
-     * @param f the side effecting function to be applied
+     * @param sideEffect the side effecting function to be applied
      * @return the original `Try`
      */
-    def doIfFailure[A](f: PartialFunction[Throwable, A]): Try[T] = {
+    def doIfFailure[A](sideEffect: PartialFunction[Throwable, A]): Try[T] = {
       t match {
-        case failure @ Failure(e) if f.isDefinedAt(e) => Try {
-          f(e)
-          return failure
+        case Failure(throwable) if sideEffect.isDefinedAt(throwable) => Try {
+          sideEffect(throwable)
+          throw throwable
         }
-        case x => x
+        case other => other
       }
     }
 
@@ -155,31 +155,31 @@ package object error {
      * Example:
      * {{{
      *   import nl.knaw.dans.lib.error.TryExtensions
-     *
+     *   import java.io.{ File, FileNotFoundException }
      *   import scala.util.{Failure, Success, Try}
      *
-     *   def getFileLength(file: File): Try[Long] =
-     *     if (file.exists) Success(file.length)
+     *   def getFileName(file: File): Try[String] =
+     *     if (file.exists) Success(file.getName)
      *     else Failure(new FileNotFoundException())
      *
      *   // Fill in existing or non-existing file
      *   val file = new File("x")
      *
-     *   getFileLength(file)
+     *   getFileName(file)
      *     .getOrRecover {
      *       // error codes
-     *       case _: FileNotFoundException => -1
-     *       case _ => -99
+     *       case _: FileNotFoundException => "<file not found>"
+     *       case _ => "<an internal error occurred>"
      *     }
      * }}}
      *
-     * @param handle converts `Throwable` to a value of type `T`
-     * @return either the value inside `Try` (on success) or the result of `handle` (on failure)
+     * @param recover recovers a `Throwable` and turns it into a value of type `T`
+     * @return either the value inside `Try` (on success) or the result of `recover` (on failure)
      */
-    def getOrRecover[S >: T](handle: Throwable => S): S = {
+    def getOrRecover[S >: T](recover: Throwable => S): S = {
       t match {
         case Success(value) => value
-        case Failure(throwable) => handle(throwable)
+        case Failure(throwable) => recover(throwable)
       }
     }
   }
