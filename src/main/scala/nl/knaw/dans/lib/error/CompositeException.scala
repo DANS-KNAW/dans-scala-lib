@@ -26,9 +26,9 @@ import scala.language.postfixOps
  *
  * The exception message returns the concatenation of all the `Throwable`s' messages.
  *
- * @param throwables a collection of `Throwable`s
+ * @param errors a collection of `Throwable`s
  */
-class CompositeException(private val throwables: Throwable*) extends RuntimeException {
+class CompositeException(private val errors: Throwable*) extends RuntimeException {
 
   @tailrec
   private def flattenExceptions(throwables: Seq[Throwable], result: mutable.ListBuffer[Throwable] = mutable.ListBuffer.empty): Seq[Throwable] = {
@@ -39,9 +39,9 @@ class CompositeException(private val throwables: Throwable*) extends RuntimeExce
     }
   }
 
-  val exceptions: Seq[Throwable] = flattenExceptions(throwables)
+  val throwables: Seq[Throwable] = flattenExceptions(errors)
 
-  lazy private val msg = exceptions.size match {
+  lazy private val msg = throwables.size match {
     case 0 => "No exceptions occurred."
     case 1 => "1 exception occurred."
     case n => s"$n exceptions occurred."
@@ -71,7 +71,7 @@ class CompositeException(private val throwables: Throwable*) extends RuntimeExce
       }
     }
 
-    exceptions.foldLeft((emptyThrowable, Set.empty[Throwable])) {
+    throwables.foldLeft((emptyThrowable, Set.empty[Throwable])) {
       case ((chain, seen), th) if seen contains th => (chain, seen)
       case ((chain, seen), th) =>
         // check if any of them have been seen before
@@ -117,7 +117,7 @@ class CompositeException(private val throwables: Throwable*) extends RuntimeExce
       builder.append("\tat ").append(elem).append('\n')
     }
 
-    for ((ex, i) <- exceptions.zipWithIndex) {
+    for ((ex, i) <- throwables.zipWithIndex) {
       builder.append("  ComposedException ").append(i + 1).append(" :\n")
       appendStackTrace(ex, "\t")
     }
