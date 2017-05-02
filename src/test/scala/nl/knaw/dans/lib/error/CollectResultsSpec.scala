@@ -15,12 +15,12 @@
  */
 package nl.knaw.dans.lib.error
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Inside, Matchers }
 
 import scala.collection.immutable.Range.Inclusive
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
-class CollectResultsSpec extends FlatSpec with Matchers {
+class CollectResultsSpec extends FlatSpec with Matchers with Inside {
 
   "collectResults" should "return a Success with a list of results when all elements of the input list are a Success" in {
     val initialCollection: Inclusive = 1 to 10
@@ -46,21 +46,22 @@ class CollectResultsSpec extends FlatSpec with Matchers {
   it should "return a Failure with the error message if there is one failure in the input" in {
     val collection: List[Try[Int]] = Success(1) :: Success(2) ::
       Failure(new ArrayIndexOutOfBoundsException("foobar")) :: Success(4) :: Nil
-    val result = collection.collectResults
 
-    result shouldBe a[Failure[_]]
-    (the [CompositeException] thrownBy result.get).getMessage should include ("ArrayIndexOutOfBoundsException: foobar")
+    inside(collection.collectResults) {
+      case Failure(CompositeException(Seq(ex: ArrayIndexOutOfBoundsException))) =>
+        ex should have message "foobar"
+    }
   }
 
   it should "return a Failure of collected error messages if there is more than one failure in the input" in {
     val collection: List[Try[Int]] = Success(1) :: Failure(new IllegalArgumentException("foo")) ::
       Success(3) :: Failure(new NoSuchElementException("bar")) :: Success(5) :: Nil
-    val result = collection.collectResults
 
-    result shouldBe a[Failure[_]]
-    val errorMessage = (the [CompositeException] thrownBy result.get).getMessage
-    errorMessage should include ("IllegalArgumentException: foo")
-    errorMessage should include ("NoSuchElementException: bar")
+    inside(collection.collectResults) {
+      case Failure(CompositeException(Seq(ex1: IllegalArgumentException, ex2: NoSuchElementException))) =>
+        ex1 should have message "foo"
+        ex2 should have message "bar"
+    }
   }
 
   it should "return a Failure of collected AND FLATTENED error messages when there are nested CompositeExceptions" in {
@@ -71,11 +72,11 @@ class CollectResultsSpec extends FlatSpec with Matchers {
     val collection = result1 :: Failure(new ArrayIndexOutOfBoundsException("baz")) :: Success(3) :: Nil
     val result = collection.collectResults
 
-    result shouldBe a[Failure[_]]
-    val errorMessage = (the [CompositeException] thrownBy result.get).getMessage
-    errorMessage should include ("IllegalArgumentException: foo")
-    errorMessage should include ("NoSuchElementException: bar")
-    errorMessage should include ("ArrayIndexOutOfBoundsException: baz")
-    errorMessage should not include "package.CompositeException:"
+    inside(result) {
+      case Failure(CompositeException(Seq(ex1: IllegalArgumentException, ex2: NoSuchElementException, ex3: ArrayIndexOutOfBoundsException))) =>
+        ex1 should have message "foo"
+        ex2 should have message "bar"
+        ex3 should have message "baz"
+    }
   }
 }

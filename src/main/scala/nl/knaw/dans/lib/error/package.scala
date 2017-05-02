@@ -15,25 +15,11 @@
  */
 package nl.knaw.dans.lib
 
-import org.apache.commons.lang.exception.ExceptionUtils._
-
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
 package object error {
-
-  /**
-   * An exception that bundles a collection of `Throwable`s.
-   *
-   * The exception message returns the concatenation of all the `Throwable`s' messages.
-   *
-   * @param throwables a collection of `Throwable`s
-   */
-  case class CompositeException(throwables: Traversable[Throwable])
-    extends RuntimeException(throwables.foldLeft("")(
-      (msg, t) => s"$msg\n${getMessage(t)} ${getStackTrace(t)}"
-    ))
 
   implicit class TraversableTryExtensions[M[_], T](xs: M[Try[T]])(implicit ev: M[Try[T]] <:< Traversable[Try[T]]) {
     /**
@@ -67,11 +53,11 @@ package object error {
      */
     def collectResults(implicit canBuildFrom: CanBuildFrom[Nothing, T, M[T]]): Try[M[T]] = {
       if (xs.exists(_.isFailure))
-        Failure(CompositeException(xs.flatMap {
-          case Success(_) => Traversable.empty
+        Failure(new CompositeException(xs.flatMap {
+          case Success(_) => Seq.empty
           case Failure(CompositeException(ts)) => ts
-          case Failure(e) => Traversable(e)
-        }))
+          case Failure(e) => Seq(e)
+        }.toSeq))
       else
         Success(xs.map(_.get).to(canBuildFrom))
     }
