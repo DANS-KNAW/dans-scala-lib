@@ -28,7 +28,7 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
     val ex4 = new Exception("msg4", ex3)
     val ex5 = new Exception("msg5")
 
-    val ce = CompositeException(ex4, ex5)
+    val ce = new CompositeException(ex4, ex5)
     ce.getMessage shouldBe "2 exceptions occurred."
   }
 
@@ -40,8 +40,8 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
     val ex5 = new Exception("msg5")
     val ex6 = new Exception("msg6")
 
-    val ce1 = CompositeException(ex4, ex5)
-    val ce2 = CompositeException(ce1, ex6)
+    val ce1 = new CompositeException(ex4, ex5)
+    val ce2 = new CompositeException(ce1, ex6)
     ce2.getMessage shouldBe "3 exceptions occurred."
   }
 
@@ -52,7 +52,7 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
     val ex4 = new Exception("msg4", ex3)
     val ex5 = new Exception("msg5")
 
-    val ce = CompositeException(ex4, ex5)
+    val ce = new CompositeException(ex4, ex5)
 
     ce.getCause.getMessage should include("Chain of causes")
     ce.getCause.getCause should have message "msg4"
@@ -66,7 +66,7 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
   it should "not show duplicated causes" in {
     val ex = new Exception("msg")
 
-    val ce = CompositeException(ex, ex)
+    val ce = new CompositeException(ex, ex)
 
     ce.getCause.getMessage should include("Chain of causes")
     ce.getCause.getCause should have message "msg"
@@ -80,7 +80,7 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
     val ex4 = new Exception("msg4", ex3)
     val ex5 = new Exception("msg5", ex2)
 
-    val ce = CompositeException(ex4, ex5)
+    val ce = new CompositeException(ex4, ex5)
 
     ce.getCause.getMessage should include("Chain of causes")
     ce.getCause.getCause should have message "msg4"
@@ -98,7 +98,7 @@ class CompositeExceptionSpec extends FlatSpec with Matchers {
     val ex4 = new Exception("msg4", ex3)
     val ex5 = new Exception("msg5")
 
-    val ce = CompositeException(ex4, ex5)
+    val ce = new CompositeException(ex4, ex5)
 
     val stringWriter = new StringWriter
     ce.printStackTrace(new PrintWriter(stringWriter))

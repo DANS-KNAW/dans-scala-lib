@@ -28,7 +28,7 @@ import scala.language.postfixOps
  *
  * @param throwables a collection of `Throwable`s
  */
-class CompositeException(private val throwables: Seq[Throwable]) extends RuntimeException {
+class CompositeException(private val throwables: Throwable*) extends RuntimeException {
 
   @tailrec
   private def flattenExceptions(throwables: Seq[Throwable], result: mutable.ListBuffer[Throwable] = mutable.ListBuffer.empty): Seq[Throwable] = {
@@ -141,7 +141,7 @@ class CompositeException(private val throwables: Seq[Throwable]) extends Runtime
 }
 
 object CompositeException {
-  def apply(errors: Throwable*): CompositeException = new CompositeException(errors)
+  def apply(errors: Seq[Throwable]): CompositeException = new CompositeException(errors:_*)
 
   def unapply(arg: CompositeException): Option[Seq[Throwable]] = Option(arg.throwables)
 }
