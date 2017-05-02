@@ -138,6 +138,13 @@ class CompositeException(private val errors: Throwable*) extends RuntimeExceptio
 
     builder.toString()
   }
+
+  override def equals(obj: scala.Any): Boolean = {
+    obj match {
+      case CompositeException(errs) => errors.equals(errs)
+      case _ => false
+    }
+  }
 }
 
 object CompositeException {
