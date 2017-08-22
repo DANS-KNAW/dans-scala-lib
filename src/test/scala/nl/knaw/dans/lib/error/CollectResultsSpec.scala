@@ -48,7 +48,7 @@ class CollectResultsSpec extends FlatSpec with Matchers with Inside {
       Failure(new ArrayIndexOutOfBoundsException("foobar")) :: Success(4) :: Nil
 
     inside(collection.collectResults) {
-      case Failure(CompositeException((ex: ArrayIndexOutOfBoundsException) :: Nil)) =>
+      case Failure((ex: ArrayIndexOutOfBoundsException)) =>
         ex should have message "foobar"
     }
   }
