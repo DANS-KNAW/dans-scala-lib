@@ -34,6 +34,7 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
   override protected def mockRequest: HttpServletRequest = {
     val req = super.mockRequest
     (() => req.getMethod) expects() returning "GET" anyNumberOfTimes()
+    (() => req.getRequestURL) expects() returning new StringBuffer("http://does.not.exist.dans.knaw.nl") anyNumberOfTimes()
     req
   }
 
@@ -50,11 +51,11 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
 
   "formatResponseLog" should "return a formatted log String for the response" in {
     new TestServlet().formatResponseLog(Ok(headers = Map("some" -> "header"))) shouldBe
-      "GET returned status=200; authHeaders=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]; actionHeaders=[some -> header]"
+      "GET http://does.not.exist.dans.knaw.nl returned status=200; authHeaders=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]; actionHeaders=[some -> header]"
   }
 
   it should "mask everything when using the MaskedResponseLogFormatter" in {
     (new TestServlet() with MaskedResponseLogFormatter).formatResponseLog(Ok(headers = Map("some" -> "header"))) shouldBe
-      "GET returned status=200; authHeaders=[Set-Cookie -> [scentry.auth.default.user=****.****.****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]; actionHeaders=[some -> header]"
+      "GET http://does.not.exist.dans.knaw.nl returned status=200; authHeaders=[Set-Cookie -> [scentry.auth.default.user=****.****.****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]; actionHeaders=[some -> header]"
   }
 }

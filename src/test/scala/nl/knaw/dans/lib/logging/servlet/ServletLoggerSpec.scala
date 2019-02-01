@@ -75,10 +75,12 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   }
 
   it should "call the logResponse on sending a response" in {
+    val port = localPort.fold("None")(_.toString)
+
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"GET returned status=200") &&
+        (s startsWith s"GET http://localhost:$port$testLoggerPath returned status=200") &&
           (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]") &&
           (s contains "actionHeaders=[]")
     } once()

@@ -77,7 +77,7 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
       requestLine should startWith(s"GET http://localhost:$port$path")
       requestLine should include(s"remote=$formattedRemote;")
 
-      responseLine should startWith(s"GET returned status=200; ")
+      responseLine should startWith(s"GET http://localhost:$port$path returned status=200; ")
       responseLine.toLowerCase() should include(s"content-type -> [text/plain;charset=utf-8]")
       responseLine should include(s"actionHeaders=[]")
     }
