@@ -15,6 +15,8 @@
  */
 package nl.knaw.dans.lib.logging.servlet
 
+import org.scalatra.ScalatraBase
+
 package object masked {
 
   type MaskedAuthenticationParameters = request.MaskedAuthenticationParameters
@@ -25,4 +27,8 @@ package object masked {
   type MaskedRemoteUser = response.MaskedRemoteUser
   type MaskedResponseLogFormatter = response.MaskedResponseLogFormatter
   type MaskedSetCookie = response.MaskedSetCookie
+
+  private[servlet] trait MaskedLogFormatter extends MaskedRequestLogFormatter with MaskedResponseLogFormatter {
+    this: ScalatraBase =>
+  }
 }
