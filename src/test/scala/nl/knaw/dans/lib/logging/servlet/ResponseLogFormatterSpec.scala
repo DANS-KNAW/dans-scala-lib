@@ -51,11 +51,11 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
 
   "formatResponseLog" should "return a formatted log String for the response" in {
     new TestServlet().formatResponseLog(Ok(headers = Map("some" -> "header"))) shouldBe
-      "GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
+      "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
   }
 
   it should "mask everything when using the MaskedResponseLogFormatter" in {
     (new TestServlet() with MaskedResponseLogFormatter).formatResponseLog(Ok(headers = Map("some" -> "header"))) shouldBe
-      "GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=****.****.****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
+      "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=****.****.****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
   }
 }

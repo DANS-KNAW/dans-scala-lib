@@ -54,11 +54,11 @@ class RequestLogFormatterSpec extends FlatSpec with Matchers with MockFactory wi
 
   "formatRequestLog" should "return a formatted log String for the request" in {
     new TestServlet().formatRequestLog shouldBe
-      "GET http://does.not.exist.dans.knaw.nl remote=12.34.56.78; params=[password -> [secret], login -> [mystery]]; headers=[cookie -> [scentry.auth.default.user=abc456.pq.xy], HTTP_AUTHORIZATION -> [basic 123x_], foo -> [bar]]"
+      "request GET http://does.not.exist.dans.knaw.nl remote=12.34.56.78; params=[password -> [secret], login -> [mystery]]; headers=[cookie -> [scentry.auth.default.user=abc456.pq.xy], HTTP_AUTHORIZATION -> [basic 123x_], foo -> [bar]]"
   }
 
   it should "mask everything when using the MaskedRequestLogFormatter" in {
     (new TestServlet() with MaskedRequestLogFormatter).formatRequestLog shouldBe
-      "GET http://does.not.exist.dans.knaw.nl remote=**.**.**.78; params=[password -> [*****], login -> [*****]]; headers=[cookie -> [scentry.auth.default.user=****.****.****], HTTP_AUTHORIZATION -> [basic *****], foo -> [bar]]"
+      "request GET http://does.not.exist.dans.knaw.nl remote=**.**.**.78; params=[password -> [*****], login -> [*****]]; headers=[cookie -> [scentry.auth.default.user=****.****.****], HTTP_AUTHORIZATION -> [basic *****], foo -> [bar]]"
   }
 }

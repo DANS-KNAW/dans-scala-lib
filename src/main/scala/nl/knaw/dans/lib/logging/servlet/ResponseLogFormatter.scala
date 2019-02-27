@@ -45,7 +45,7 @@ trait ResponseLogFormatter {
     val formattedActionHeaders = formatActionHeaders(actionResult.headers).mapValues(List(_))
     val headers = (formattedAuthHeaders ++ formattedActionHeaders).makeString
 
-    s"$method $requestURL returned status=$status; headers=$headers"
+    s"response $method $requestURL returned status=$status; headers=$headers"
   }
 
   /**
