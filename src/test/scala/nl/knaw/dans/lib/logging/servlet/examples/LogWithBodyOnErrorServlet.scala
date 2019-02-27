@@ -15,22 +15,16 @@
  */
 package nl.knaw.dans.lib.logging.servlet.examples
 
-import javax.servlet.http.HttpServletResponse
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
-import nl.knaw.dans.lib.logging.servlet.body.LogResponseBody
+import nl.knaw.dans.lib.logging.servlet.body.LogResponseBodyOnError
 import org.scalatra.{ NotAcceptable, ScalatraServlet }
 
 class LogWithBodyOnErrorServlet extends ScalatraServlet
   with ServletLogger
   with PlainLogFormatter
-  with LogResponseBody
+  with LogResponseBodyOnError
   with DebugEnhancedLogging {
-  
-  def shouldLogResponseBody(response: HttpServletResponse): Boolean = {
-    val status = response.status
-    400 <= status && status < 600
-  }
 
   get("/") {
     NotAcceptable("foobar").logResponse
