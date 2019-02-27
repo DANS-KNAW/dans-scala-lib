@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.lib.logging.servlet.masked
 
-import nl.knaw.dans.lib.logging.servlet.{ HeaderMapEntry, MultiParamsEntry }
+import nl.knaw.dans.lib.logging.servlet.HeaderMapEntry
 
 object Masker {
 
@@ -61,10 +61,6 @@ object Masker {
 
   def formatRemoteUserHeader: HeaderMapEntry => HeaderMapEntry = {
     formatTuple(_.toLowerCase == "remote_user")(_ => "*****")
-  }
-
-  def formatAuthenticationParameter: MultiParamsEntry => MultiParamsEntry = {
-    formatTuple(Seq("login", "password") contains _.toLowerCase)(_ => "*****")
   }
 
   def formatTuple(predicate: String => Boolean)

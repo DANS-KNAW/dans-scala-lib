@@ -19,7 +19,6 @@ import org.scalatra.ScalatraBase
 
 private[masked] trait MaskedRequestLogFormatter extends MaskedCookie
   with MaskedAuthorizationHeader
-  with MaskedAuthenticationParameters
   with MaskedRemoteAddress {
   this: ScalatraBase =>
 }

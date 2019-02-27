@@ -93,33 +93,4 @@ class MaskerSpec extends FlatSpec with Matchers {
     Masker.formatRemoteUserHeader("other-header" -> Seq("some value")) shouldBe
       "other-header" -> Seq("some value")
   }
-
-  "formatAuthenticationParameter" should "format authentication login parameter" in {
-    val headerKey = "login"
-    Masker.formatAuthenticationParameter(headerKey -> Seq("my-username")) shouldBe
-      headerKey -> Seq("*****")
-  }
-
-  it should "format authentication login parameter (after lowercasing)" in {
-    val headerKey = "login"
-    Masker.formatAuthenticationParameter(headerKey.toUpperCase -> Seq("my-username")) shouldBe
-      headerKey.toUpperCase -> Seq("*****")
-  }
-
-  it should "format authentication password parameter" in {
-    val headerKey = "password"
-    Masker.formatAuthenticationParameter(headerKey -> Seq("my-username")) shouldBe
-      headerKey -> Seq("*****")
-  }
-
-  it should "format authentication password parameter (after lowercasing)" in {
-    val headerKey = "password"
-    Masker.formatAuthenticationParameter(headerKey.toUpperCase -> Seq("my-username")) shouldBe
-      headerKey.toUpperCase -> Seq("*****")
-  }
-
-  it should "not format a header with another name than the given one" in {
-    Masker.formatAuthenticationParameter("other-header" -> Seq("some value")) shouldBe
-      "other-header" -> Seq("some value")
-  }
 }
