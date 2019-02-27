@@ -184,4 +184,8 @@ package object servlet {
   }
 
   type MaskedLogFormatter = masked.MaskedLogFormatter
+
+  type LogResponseBody = body.LogResponseBody
+  type LogResponseBodyAlways = body.LogResponseBodyAlways
+  type LogResponseBodyOnError = body.LogResponseBodyOnError
 }

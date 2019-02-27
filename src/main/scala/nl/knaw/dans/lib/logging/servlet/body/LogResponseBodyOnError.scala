@@ -3,7 +3,7 @@ package nl.knaw.dans.lib.logging.servlet.body
 import javax.servlet.http.HttpServletResponse
 import org.scalatra.ScalatraBase
 
-trait LogResponseBodyOnError extends LogResponseBody {
+private[servlet] trait LogResponseBodyOnError extends LogResponseBody {
   this: ScalatraBase =>
 
   override def shouldLogResponseBody(response: HttpServletResponse): Boolean = {

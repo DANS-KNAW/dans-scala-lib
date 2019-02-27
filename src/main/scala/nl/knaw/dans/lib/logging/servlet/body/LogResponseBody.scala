@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse
 import nl.knaw.dans.lib.logging.servlet.ResponseLogFormatter
 import org.scalatra.{ ActionResult, ScalatraBase }
 
-trait LogResponseBody extends ResponseLogFormatter {
+private[servlet] trait LogResponseBody extends ResponseLogFormatter {
   this: ScalatraBase =>
   
   def shouldLogResponseBody(response: HttpServletResponse): Boolean
