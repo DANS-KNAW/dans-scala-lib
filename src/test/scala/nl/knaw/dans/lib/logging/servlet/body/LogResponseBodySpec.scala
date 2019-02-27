@@ -25,8 +25,7 @@ import scala.collection.JavaConverters._
 
 class LogResponseBodySpec extends FlatSpec with Matchers with MockFactory with TestServletFixture {
   
-  class LogResponseBodyTestServlet extends TestServlet(request=mockRequest, response = mockResponse)
-    with LogResponseBody {
+  class LogResponseBodyTestServlet extends TestServlet with LogResponseBody {
     def shouldLogResponseBody(response: HttpServletResponse): Boolean = true
 
     override def formatResponseLog(actionResult: ActionResult): String = super.formatResponseLog(actionResult)
