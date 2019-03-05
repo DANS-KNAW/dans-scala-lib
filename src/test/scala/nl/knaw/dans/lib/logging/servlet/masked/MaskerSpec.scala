@@ -120,7 +120,7 @@ class MaskerSpec extends FlatSpec with Matchers {
   }
 
   private case class TestCase(address: String, expected: String)
-  private val headCase::tailCases = Seq(
+  private val headCase::tailCases = List(
     TestCase("129.144.52.38", "129.**.**.**"), // IPv4
 
     // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
