@@ -33,10 +33,6 @@ class MaskerSpec extends FlatSpec with Matchers {
     Masker.formatCookie(cookie) shouldBe s"$cookieKey=****.****.****"
   }
 
-  "formatRemoteAddress" should "replace the first part of an IPv4 remote address" in {
-    Masker.formatRemoteAddress("127.0.0.1") shouldBe "**.**.**.1"
-  }
-
   "formatCookieHeader" should "format a cookie with given header name" in {
     val cookieName = "my-cookie"
     Masker.formatCookieHeader(cookieName)(Masker.formatCookie)(cookieName -> Seq(cookie)) shouldBe
@@ -121,5 +117,63 @@ class MaskerSpec extends FlatSpec with Matchers {
   it should "not format a header with another name than the given one" in {
     Masker.formatAuthenticationParameter("other-header" -> Seq("some value")) shouldBe
       "other-header" -> Seq("some value")
+  }
+
+  private case class TestCase(address: String, expected: String)
+  private val headCase::tailCases = Seq(
+    TestCase("129.144.52.38", "129.**.**.**"), // IPv4
+
+    // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
+    TestCase("1080:0:0:0:8:800:200C:417A", "1080:0:0:0:8:**:**:**"), // preferred
+    TestCase("1080::8:800:200C:417A", "1080::8:**:**:**"), // suppressed zero sequences
+    TestCase("::FFFF:129.144.52.38", "::FFFF:129.**.**.**"), // mixed IPv4/IPv6
+    TestCase("::129.144.52.38", "::129.**.**.**"), // mixed IPv4/IPv6
+    TestCase("::FFFF:1.2.3", "::FFFF:1.2.3"), // invalid
+    TestCase("::FFFF:4.5", "::FFFF:4.5"), // invalid
+    TestCase("::6.7.8", "::6.7.8"), // invalid
+    TestCase("::9.10", "::9.10"), // invalid
+    TestCase("::FFFF:123", "::FFFF:**"), // unconventional representation of ::255.255.0.123
+    TestCase("::255.255.0.123", "::255.**.**.**"),
+    TestCase("0:0:0:0:0:0:0:123", "0:0:0:0:0:**:**:**"),
+
+    // https://en.wikipedia.org/wiki/Localhost
+    TestCase("127.0.0.1", "127.0.0.1"),
+    TestCase("::1", "::1"),
+
+    // duplicated examples from different referenced sources are kept as comment for documentation
+
+    // https://www.ietf.org/rfc/rfc3513.txt
+    TestCase("FEDC:BA98:7654:3210:FEDC:BA98:7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"), // 2.2.1 example of preferred format
+    //TestCase("1080:0:0:0:8:800:200C:417A", "???"), // 2.2.1 example of preferred format
+    TestCase("0:0:0:0:0:0:0:1", "0:0:0:0:0:0:0:1"), // 2.2.2 long version of ::1 (loopback/localhost)
+    TestCase("0:0:0:0:0:0:0:0", "0:0:0:0:0:0:0:0"), // 2.2.2 long version of unspecified address
+    TestCase("::", "::"), // 2.2.2 short version of unspecified address
+    //TestCase("1080:0:0:0:8:800:200C:417A", ""), // 2.2.2 long unicast
+    TestCase("FF01:0:0:0:0:0:0:101", "FF01:0:0:0:0:**:**:**"), // 2.2.2 long multicast
+    //TestCase("1080::8:800:200C:417A", "???"), // 2.2.2 short unicast
+    TestCase("FF01::101", "FF01::**"), // 2.2.2 short multicast
+    TestCase("0:0:0:0:0:0:13.1.68.3", "0:0:0:0:0:0:13.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
+    TestCase("0:0:0:0:0:FFFF:129.144.52.38", "0:0:0:0:0:FFFF:129.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
+
+    // https://www.tutorialspoint.com/ipv6/ipv6_address_types.htm
+    // composition of IPv6 Unicast:
+    // * 48 bits Global Routing Prefix
+    // * 16 bits Subnet ID
+    // * 64 bits Interface ID (possibly derived from a globally unique Mac address)
+
+    // https://en.wikipedia.org/wiki/Reserved_IP_addresses
+    // https://en.wikipedia.org/wiki/IP_address
+    // TODO more special cases?
+  )
+
+  "formatRemoteAddress" should maskAddressOf(headCase) in { testAddress(headCase) }
+  tailCases.foreach(testCase => it should maskAddressOf(testCase) in { testAddress(testCase) })
+
+  private def maskAddressOf(testCase: TestCase) = {
+    s"mask ${ testCase.address } -> ${ testCase.expected }"
+  }
+
+  private def testAddress(testCase: TestCase) = {
+    Masker.formatRemoteAddress(testCase.address) shouldBe testCase.expected
   }
 }

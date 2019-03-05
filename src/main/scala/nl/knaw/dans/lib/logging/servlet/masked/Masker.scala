@@ -39,11 +39,18 @@ object Masker {
    * Services without public access might not need to mask.
    */
   def formatRemoteAddress(remoteAddress: String): String = {
-    // TODO https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
-    // see also:
-    //  * https://stackoverflow.com/questions/3118829/why-request-getremoteaddr-returns-ipv4-or-ipv6-depending-on-context-post-quer
-    //  * https://stackoverflow.com/questions/7589526/what-is-the-ip-format-returned-by-servletrequest-getremoteaddr
-    remoteAddress.replaceAll("([0-9]+[.]){3}", "**.**.**.")
+    remoteAddress match {
+      case "0:0:0:0:0:0:0:1" | "127.0.0.1" | "::1" | // localhost
+           "0:0:0:0:0:0:0:0" => remoteAddress // unspecified
+      case _ if remoteAddress.contains(".") => remoteAddress
+        .replaceAll("([.][0-9]+){3}$", ".**.**.**")
+      case _ if remoteAddress.matches(":*[0-9A-F]+:+[0-9A-F]+") => remoteAddress
+        .replaceAll("[0-9A-F]+$", "**")
+      case _ => remoteAddress
+        .replaceAll("(:[0-9A-F]+){3}$", ":**:**:**") // e.g: subnet ID + Interface ID of multicast
+        .replaceAll("(:[0-9A-F]+){2}$", ":**:**")
+        .replaceAll("(:[0-9A-F]+){1}$", ":**")
+    }
   }
 
   def formatCookieHeader(headerName: String)(formatter: String => String): HeaderMapEntry => HeaderMapEntry = {
@@ -68,8 +75,8 @@ object Masker {
   }
 
   def formatTuple(predicate: String => Boolean)
-                         (format: String => String)
-                         (tuple: (String, Seq[String])): HeaderMapEntry = {
+                 (format: String => String)
+                 (tuple: (String, Seq[String])): HeaderMapEntry = {
     tuple match {
       case (name, values) if predicate(name) => name -> values.map(format)
       case otherwise => otherwise
