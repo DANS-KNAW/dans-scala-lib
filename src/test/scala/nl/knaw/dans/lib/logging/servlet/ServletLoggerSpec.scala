@@ -80,7 +80,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"response GET http://localhost:$port$testLoggerPath returned status=200") &&
+        (s startsWith s"response GET http://localhost:$port$testLoggerPath returned status=200; headers=[") &&
           (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]")
     } once()
     (mockedLogger.info(_: String)) expects * once()
