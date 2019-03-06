@@ -27,7 +27,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  * used automatically (see the documentation of `logResponse` for an example).
  */
 trait AbstractServletLogger {
-  this: ScalatraBase =>
+  this: ScalatraBase with RequestLogFormatter with ResponseLogFormatter =>
 
   /**
    * This instance of the `AbstractServletLogger` in implicit scope.
@@ -39,10 +39,22 @@ trait AbstractServletLogger {
   }
 
   /**
+   * Output the given request `logLine` as desired.
+   * @param logLine the log line to be outputted
+   */
+  protected def logRequest(logLine: String): Unit
+
+  /**
+   * Output the given response `logLine` as desired.
+   * @param logLine the log line to be outputted
+   */
+  protected def logResponse(logLine: String): Unit
+
+  /**
    * Performs the side effect of the logging of the request.
    * This method is typically not called in user code, but rather in `ScalatraBase`'s `before` filter.
    */
-  def logRequest(): Unit
+  def logRequest(): Unit = logRequest(formatRequestLog)
 
   /**
    * Performs the side effect of the logging of the response, contained in the given `ActionResult`.
@@ -80,7 +92,10 @@ trait AbstractServletLogger {
    * @param actionResult the `ActionResult to be logged`
    * @return the original `ActionResult`
    */
-  def logResponse(actionResult: ActionResult): ActionResult
+  def logResponse(actionResult: ActionResult): ActionResult = {
+    logResponse(formatResponseLog(actionResult))
+    actionResult
+  }
 }
 
 /**
@@ -101,13 +116,10 @@ trait ServletLogger extends AbstractServletLogger {
   /**
    * @inheritdoc
    */
-  override def logRequest(): Unit = logger.info(formatRequestLog)
+  override protected def logRequest(logLine: String): Unit = logger.info(logLine)
 
   /**
    * @inheritdoc
    */
-  override def logResponse(actionResult: ActionResult): ActionResult = {
-    logger.info(formatResponseLog(actionResult))
-    actionResult
-  }
+  override protected def logResponse(logLine: String): Unit = logger.info(logLine)
 }

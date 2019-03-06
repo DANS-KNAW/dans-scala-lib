@@ -19,7 +19,7 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedRemoteAddress
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatra.{ ActionResult, Ok, ScalatraBase, ScalatraServlet }
+import org.scalatra.{ Ok, ScalatraBase, ScalatraServlet }
 
 class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJettyContainer with ScalatraSuite {
 
@@ -28,12 +28,13 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
     with RequestLogFormatter {
     this: ScalatraBase =>
 
-    override def logResponse(actionResult: ActionResult): ActionResult = {
-      stringBuilder append formatResponseLog(actionResult) append "\n"
-      actionResult
+    override protected def logRequest(logLine: String): Unit = {
+      stringBuilder append logLine append "\n"
     }
 
-    override def logRequest(): Unit = stringBuilder append formatRequestLog append "\n"
+    override protected def logResponse(logLine: String): Unit = {
+      stringBuilder append logLine append "\n"
+    }
   }
 
   private class TestServlet() extends ScalatraServlet with TestLoggers {
