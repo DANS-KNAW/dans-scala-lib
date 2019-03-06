@@ -15,11 +15,12 @@
  */
 package nl.knaw.dans.lib.logging.servlet.body
 
-import javax.servlet.http.HttpServletResponse
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
 
 private[servlet] trait LogResponseBodyAlways extends LogResponseBody {
   this: ScalatraBase =>
 
-  override def shouldLogResponseBody(response: HttpServletResponse): Boolean = true
+  override protected def formatResponseBody(actionResult: ActionResult): String = {
+    String.valueOf(actionResult.body)
+  }
 }

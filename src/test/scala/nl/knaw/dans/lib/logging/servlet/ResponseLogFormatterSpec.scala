@@ -65,6 +65,7 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
 
   it should "add the response body when using LogResponseBody" in {
     val testServlet: TestServlet = new TestServlet() with LogResponseBodyAlways {
+      // make formatResponseLog public
       override def formatResponseLog(actionResult: ActionResult): String = super.formatResponseLog(actionResult)
     }
     testServlet.formatResponseLog(actionResult) shouldBe

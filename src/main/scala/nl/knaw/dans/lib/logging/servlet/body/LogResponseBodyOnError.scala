@@ -15,14 +15,19 @@
  */
 package nl.knaw.dans.lib.logging.servlet.body
 
-import javax.servlet.http.HttpServletResponse
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
 
 private[servlet] trait LogResponseBodyOnError extends LogResponseBody {
   this: ScalatraBase =>
 
-  override def shouldLogResponseBody(response: HttpServletResponse): Boolean = {
-    val status = response.status
+  private def isErrorResult(actionResult: ActionResult): Boolean = {
+    val status = actionResult.status
     400 <= status && status <= 599
+  }
+
+  override protected def formatResponseBody(actionResult: ActionResult): String = {
+    if (isErrorResult(actionResult))
+      String.valueOf(actionResult.body)
+    else ""
   }
 }
