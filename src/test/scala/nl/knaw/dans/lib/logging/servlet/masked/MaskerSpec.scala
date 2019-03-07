@@ -120,7 +120,7 @@ class MaskerSpec extends FlatSpec with Matchers {
   }
 
   private case class TestCase(address: String, expected: String)
-  private val headCase::tailCases = List(
+  private val headCase :: tailCases = List(
     TestCase("129.144.52.38", "129.**.**.**"), // IPv4
 
     // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
@@ -157,13 +157,22 @@ class MaskerSpec extends FlatSpec with Matchers {
 
     // https://www.tutorialspoint.com/ipv6/ipv6_address_types.htm
     // composition of IPv6 Unicast:
-    // * 48 bits Global Routing Prefix
-    // * 16 bits Subnet ID
-    // * 64 bits Interface ID (possibly derived from a globally unique Mac address)
+    // * 48 bits (3 hex blocks) Global Routing Prefix
+    // * 16 bits (1 hex block) Subnet ID
+    // * 64 bits (2 hex blocks) Interface ID (possibly derived from a globally unique Mac address)
 
     // https://en.wikipedia.org/wiki/Reserved_IP_addresses
     // https://en.wikipedia.org/wiki/IP_address
     // TODO more special cases?
+
+    // self invented cases with more or less randomly suppressed zero blocks
+    TestCase("FEDC:BA98:7654:3210:FEDC::7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
+    TestCase("FEDC:BA98:7654:3210:FEDC:BA98::3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
+    // the next ones are ambiguous: not clear which block is/are non-zero
+    TestCase("BA98::3210::", "BA98::**::"),
+    TestCase("::BA98::3210", "::BA98::**"),
+    TestCase("::BA98::3210::", "::BA98::**::"),
+    TestCase("::3210::", ":**:**:**"),
   )
 
   "formatRemoteAddress" should maskAddressOf(headCase) in { testAddress(headCase) }

@@ -39,17 +39,24 @@ object Masker {
    * Services without public access might not need to mask.
    */
   def formatRemoteAddress(remoteAddress: String): String = {
+    /*
+     * An IPv4 address has 4 blocks of digits separated with dots,
+     * IPv4 is the tail in a mixed IPv4/IPv6 address.
+     * An IPv6 address has 8 blocks of hex digits separated with ":",
+     * a sequence of zero's may be compressed to "::".
+     */
     remoteAddress match {
       case "0:0:0:0:0:0:0:1" | "127.0.0.1" | "::1" | // localhost
-           "0:0:0:0:0:0:0:0" => remoteAddress // unspecified
-      case _ if remoteAddress.contains(".") => remoteAddress
-        .replaceAll("([.][0-9]+){3}$", ".**.**.**")
-      case _ if remoteAddress.matches(":*[0-9A-F]+:+[0-9A-F]+") => remoteAddress
-        .replaceAll("[0-9A-F]+$", "**")
-      case _ => remoteAddress
-        .replaceAll("(:[0-9A-F]+){3}$", ":**:**:**") // e.g: subnet ID + Interface ID of multicast
-        .replaceAll("(:[0-9A-F]+){2}$", ":**:**")
-        .replaceAll("(:[0-9A-F]+){1}$", ":**")
+           "0:0:0:0:0:0:0:0" | "::" // unspecified
+      => remoteAddress
+      case _ if remoteAddress.contains(".") // IPv4 or mixed IPv6/Ipv4
+      => remoteAddress.replaceAll("([.][0-9]+){3}$", ".**.**.**") // mask the 3 least significant blocks
+      // from now on pure IPv6
+      case _ if remoteAddress.matches(":*[0-9A-F]+:+[0-9A-F]+:*") // two not suppressed blocks
+      => remoteAddress.replaceAll("[0-9A-F]+(:*)$", "**$1") // mask the last specified block
+      case _ =>
+        val blocks = remoteAddress.split(":")
+        blocks.slice(0, blocks.length - 3).mkString(":") + ":**:**:**"
     }
   }
 
