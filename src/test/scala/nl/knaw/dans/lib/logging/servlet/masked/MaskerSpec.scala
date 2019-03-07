@@ -15,9 +15,10 @@
  */
 package nl.knaw.dans.lib.logging.servlet.masked
 
+import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{ FlatSpec, Matchers }
 
-class MaskerSpec extends FlatSpec with Matchers {
+class MaskerSpec extends FlatSpec with Matchers with TableDrivenPropertyChecks {
 
   private val cookieKey = "scentry.auth.default.user"
   private val cookieValue = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NDcyMDc2MjksImlhdCI6MTU0NzIwNDAyOSwidWlkIjoidXNlcjAwMSJ9.UH3bMyWaUimn0ctbEcThh4hx5LlvYJ61kfvzU4O5JPI"
@@ -119,70 +120,63 @@ class MaskerSpec extends FlatSpec with Matchers {
       "other-header" -> Seq("some value")
   }
 
-  private case class TestCase(address: String, expected: String)
-  private val headCase :: tailCases = List(
-    TestCase("129.144.52.38", "129.**.**.**"), // IPv4
+  "formatRemoteAddress" should "properly mask" in {
+    forEvery(Table(("plainAddress", "maskedAddress"),
+      ("129.144.52.38", "129.**.**.**"), // IPv4
 
-    // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
-    TestCase("1080:0:0:0:8:800:200C:417A", "1080:0:0:0:8:**:**:**"), // preferred
-    TestCase("1080::8:800:200C:417A", "1080::8:**:**:**"), // suppressed zero sequences
-    TestCase("::FFFF:129.144.52.38", "::FFFF:129.**.**.**"), // mixed IPv4/IPv6
-    TestCase("::129.144.52.38", "::129.**.**.**"), // mixed IPv4/IPv6
-    TestCase("::FFFF:1.2.3", "::FFFF:1.2.3"), // invalid
-    TestCase("::FFFF:4.5", "::FFFF:4.5"), // invalid
-    TestCase("::6.7.8", "::6.7.8"), // invalid
-    TestCase("::9.10", "::9.10"), // invalid
-    TestCase("::FFFF:123", "::FFFF:**"), // unconventional representation of ::255.255.0.123
-    TestCase("::255.255.0.123", "::255.**.**.**"),
-    TestCase("0:0:0:0:0:0:0:123", "0:0:0:0:0:**:**:**"),
+      // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
+      ("1080:0:0:0:8:800:200C:417A", "1080:0:0:0:8:**:**:**"), // preferred
+      ("1080:0:0:0:8:800:200C:417A", "1080:0:0:0:8:**:**:**"), // preferred
+      ("1080::8:800:200C:417A", "1080::8:**:**:**"), // suppressed zero sequences
+      ("::FFFF:129.144.52.38", "::FFFF:129.**.**.**"), // mixed IPv4/IPv6
+      ("::129.144.52.38", "::129.**.**.**"), // mixed IPv4/IPv6
+      ("::FFFF:1.2.3", "::FFFF:1.2.3"), // invalid
+      ("::FFFF:4.5", "::FFFF:4.5"), // invalid
+      ("::6.7.8", "::6.7.8"), // invalid
+      ("::9.10", "::9.10"), // invalid
+      ("::FFFF:123", "::FFFF:**"), // unconventional representation of ::255.255.0.123
+      ("::255.255.0.123", "::255.**.**.**"),
+      ("0:0:0:0:0:0:0:123", "0:0:0:0:0:**:**:**"),
 
-    // https://en.wikipedia.org/wiki/Localhost
-    TestCase("127.0.0.1", "127.0.0.1"),
-    TestCase("::1", "::1"),
+      // https://en.wikipedia.org/wiki/Localhost
+      ("127.0.0.1", "127.0.0.1"),
+      ("::1", "::1"),
 
-    // duplicated examples from different referenced sources are kept as comment for documentation
+      // duplicated examples from different referenced sources are kept as comment for documentation
 
-    // https://www.ietf.org/rfc/rfc3513.txt
-    TestCase("FEDC:BA98:7654:3210:FEDC:BA98:7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"), // 2.2.1 example of preferred format
-    //TestCase("1080:0:0:0:8:800:200C:417A", "???"), // 2.2.1 example of preferred format
-    TestCase("0:0:0:0:0:0:0:1", "0:0:0:0:0:0:0:1"), // 2.2.2 long version of ::1 (loopback/localhost)
-    TestCase("0:0:0:0:0:0:0:0", "0:0:0:0:0:0:0:0"), // 2.2.2 long version of unspecified address
-    TestCase("::", "::"), // 2.2.2 short version of unspecified address
-    //TestCase("1080:0:0:0:8:800:200C:417A", ""), // 2.2.2 long unicast
-    TestCase("FF01:0:0:0:0:0:0:101", "FF01:0:0:0:0:**:**:**"), // 2.2.2 long multicast
-    //TestCase("1080::8:800:200C:417A", "???"), // 2.2.2 short unicast
-    TestCase("FF01::101", "FF01::**"), // 2.2.2 short multicast
-    TestCase("0:0:0:0:0:0:13.1.68.3", "0:0:0:0:0:0:13.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
-    TestCase("0:0:0:0:0:FFFF:129.144.52.38", "0:0:0:0:0:FFFF:129.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
+      // https://www.ietf.org/rfc/rfc3513.txt
+      ("FEDC:BA98:7654:3210:FEDC:BA98:7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"), // 2.2.1 example of preferred format
+      //("1080:0:0:0:8:800:200C:417A", "???"), // 2.2.1 example of preferred format
+      ("0:0:0:0:0:0:0:1", "0:0:0:0:0:0:0:1"), // 2.2.2 long version of ::1 (loopback/localhost)
+      ("0:0:0:0:0:0:0:0", "0:0:0:0:0:0:0:0"), // 2.2.2 long version of unspecified address
+      ("::", "::"), // 2.2.2 short version of unspecified address
+      //("1080:0:0:0:8:800:200C:417A", ""), // 2.2.2 long unicast
+      ("FF01:0:0:0:0:0:0:101", "FF01:0:0:0:0:**:**:**"), // 2.2.2 long multicast
+      //("1080::8:800:200C:417A", "???"), // 2.2.2 short unicast
+      ("FF01::101", "FF01::**"), // 2.2.2 short multicast
+      ("0:0:0:0:0:0:13.1.68.3", "0:0:0:0:0:0:13.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
+      ("0:0:0:0:0:FFFF:129.144.52.38", "0:0:0:0:0:FFFF:129.**.**.**"), // 2.2.3 long mixed IPv4/IPv6 (short between oracle examples)
 
-    // https://www.tutorialspoint.com/ipv6/ipv6_address_types.htm
-    // composition of IPv6 Unicast:
-    // * 48 bits (3 hex blocks) Global Routing Prefix
-    // * 16 bits (1 hex block) Subnet ID
-    // * 64 bits (2 hex blocks) Interface ID (possibly derived from a globally unique Mac address)
+      // https://www.tutorialspoint.com/ipv6/ipv6_address_types.htm
+      // composition of IPv6 Unicast:
+      // * 48 bits (3 hex blocks) Global Routing Prefix
+      // * 16 bits (1 hex block) Subnet ID
+      // * 64 bits (2 hex blocks) Interface ID (possibly derived from a globally unique Mac address)
 
-    // https://en.wikipedia.org/wiki/Reserved_IP_addresses
-    // https://en.wikipedia.org/wiki/IP_address
-    // TODO more special cases?
+      // https://en.wikipedia.org/wiki/Reserved_IP_addresses
+      // https://en.wikipedia.org/wiki/IP_address
+      // TODO more special cases?
 
-    // self invented cases with more or less randomly suppressed zero blocks
-    TestCase("FEDC:BA98:7654:3210:FEDC::7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
-    TestCase("FEDC:BA98:7654:3210:FEDC:BA98::3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
-    // the next ones are ambiguous: not clear which block is/are non-zero
-    TestCase("BA98::3210::", "BA98::**::"),
-    TestCase("::BA98::3210", "::BA98::**"),
-    TestCase("::BA98::3210::", "::BA98::**::"),
-    TestCase("::3210::", ":**:**:**"),
-  )
-
-  "formatRemoteAddress" should maskAddressOf(headCase) in { testAddress(headCase) }
-  tailCases.foreach(testCase => it should maskAddressOf(testCase) in { testAddress(testCase) })
-
-  private def maskAddressOf(testCase: TestCase) = {
-    s"mask ${ testCase.address } -> ${ testCase.expected }"
-  }
-
-  private def testAddress(testCase: TestCase) = {
-    Masker.formatRemoteAddress(testCase.address) shouldBe testCase.expected
+      // self invented cases with more or less randomly suppressed zero blocks
+      ("FEDC:BA98:7654:3210:FEDC::7654:3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
+      ("FEDC:BA98:7654:3210:FEDC:BA98::3210", "FEDC:BA98:7654:3210:FEDC:**:**:**"),
+      // the next ones are ambiguous: not clear which block is/are non-zero
+      ("BA98::3210::", "BA98::**::"),
+      ("::BA98::3210", "::BA98::**"),
+      ("::BA98::3210::", "::BA98::**::"),
+      ("::3210::", ":**:**:**"),
+    )) { (plainAddress: String, maskedAddress: String) =>
+      Masker.formatRemoteAddress(plainAddress) shouldBe maskedAddress
+    }
   }
 }
