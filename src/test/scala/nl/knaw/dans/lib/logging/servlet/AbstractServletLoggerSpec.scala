@@ -56,7 +56,7 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
   }
 
   "custom request formatter" should "alter logged content" in {
-    shouldDivertLogging(maskedLoggersPath, formattedRemote = "**.**.**.1")
+    shouldDivertLogging(maskedLoggersPath)
   }
 
   private def shouldDivertLogging(path: String = "/", formattedRemote: String = "127.0.0.1") = {
