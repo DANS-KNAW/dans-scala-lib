@@ -121,7 +121,7 @@ class MaskerSpec extends FlatSpec with Matchers with TableDrivenPropertyChecks {
   }
 
   "formatRemoteAddress" should "properly mask" in {
-    forEvery(Table(("plainAddress", "maskedAddress"),
+    val remoteAdressExamples = Table(("plainAddress", "maskedAddress"),
       ("129.144.52.38", "129.**.**.**"), // IPv4
 
       // https://docs.oracle.com/javase/9/docs/api/java/net/Inet6Address.html
@@ -175,7 +175,8 @@ class MaskerSpec extends FlatSpec with Matchers with TableDrivenPropertyChecks {
       ("::BA98::3210", "::BA98::**"),
       ("::BA98::3210::", "::BA98::**::"),
       ("::3210::", ":**:**:**"),
-    )) { (plainAddress: String, maskedAddress: String) =>
+    )
+    forEvery(remoteAdressExamples) { (plainAddress: String, maskedAddress: String) =>
       Masker.formatRemoteAddress(plainAddress) shouldBe maskedAddress
     }
   }
