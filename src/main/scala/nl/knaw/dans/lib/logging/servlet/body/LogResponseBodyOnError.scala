@@ -25,9 +25,9 @@ private[servlet] trait LogResponseBodyOnError extends LogResponseBody {
     400 <= status && status <= 599
   }
 
-  override protected def formatResponseBody(actionResult: ActionResult): String = {
+  override protected def formatResponseBody(actionResult: ActionResult): Option[Any] = {
     if (isErrorResult(actionResult))
-      String.valueOf(actionResult.body)
-    else ""
+      Option(actionResult.body)
+    else Option.empty
   }
 }

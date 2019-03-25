@@ -19,19 +19,22 @@ import nl.knaw.dans.lib.logging.servlet.ResponseLogFormatter
 import nl.knaw.dans.lib.string._
 import org.scalatra.{ ActionResult, ScalatraBase }
 
+import scala.language.postfixOps
+
 private[servlet] trait LogResponseBody extends ResponseLogFormatter {
   this: ScalatraBase =>
 
-  protected def formatResponseBody(actionResult: ActionResult): String
+  protected def formatResponseBody(actionResult: ActionResult): Option[Any]
 
   override protected def formatResponseLog(actionResult: ActionResult): String = {
-    val body = formatResponseBody(actionResult)
-
-    // TODO should we distinguish between an empty body and no body?
-    //  in that case it should be
-    //  formatResponseBody :: ActionResult => Option[String]
-    val formattedBody = if (body.isBlank) ""
-                        else s"; body=[$body]"
+    val formattedBody = formatResponseBody(actionResult)
+      .withFilter(Unit !=)
+      .map(String.valueOf)
+      .map {
+        case b if b.isBlank => "; body=[]"
+        case b => s"; body=[$b]"
+      }
+      .getOrElse("")
 
     super.formatResponseLog(actionResult) + formattedBody
   }

@@ -20,7 +20,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
 private[servlet] trait LogResponseBodyAlways extends LogResponseBody {
   this: ScalatraBase =>
 
-  override protected def formatResponseBody(actionResult: ActionResult): String = {
-    String.valueOf(actionResult.body)
+  override protected def formatResponseBody(actionResult: ActionResult): Option[Any] = {
+    Option(actionResult.body)
   }
 }

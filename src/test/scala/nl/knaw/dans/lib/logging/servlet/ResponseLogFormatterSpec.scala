@@ -19,7 +19,7 @@ import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import nl.knaw.dans.lib.logging.servlet.masked.MaskedResponseLogFormatter
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ FlatSpec, Matchers }
-import org.scalatra.{ ActionResult, Ok }
+import org.scalatra.{ ActionResult, NoContent, Ok }
 
 import scala.collection.JavaConverters._
 
@@ -65,10 +65,28 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
 
   it should "add the response body when using LogResponseBody" in {
     val testServlet: TestServlet = new TestServlet() with LogResponseBodyAlways {
-      // make formatResponseLog public
+      // make formatResponseLog public again
       override def formatResponseLog(actionResult: ActionResult): String = super.formatResponseLog(actionResult)
     }
     testServlet.formatResponseLog(actionResult) shouldBe
       "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]; body=[hello world]"
+  }
+
+  it should "add an empty response body when using LogResponseBody with a blank body" in {
+    val testServlet: TestServlet = new TestServlet() with LogResponseBodyAlways {
+      // make formatResponseLog public again
+      override def formatResponseLog(actionResult: ActionResult): String = super.formatResponseLog(actionResult)
+    }
+    testServlet.formatResponseLog(Ok("   \t   \n   ")) shouldBe
+      "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]; body=[]"
+  }
+
+  it should "add no response body when using LogResponseBody with response without a body" in {
+    val testServlet: TestServlet = new TestServlet() with LogResponseBodyAlways {
+      // make formatResponseLog public again
+      override def formatResponseLog(actionResult: ActionResult): String = super.formatResponseLog(actionResult)
+    }
+    testServlet.formatResponseLog(NoContent()) shouldBe
+      "response GET http://does.not.exist.dans.knaw.nl returned status=204; headers=[Set-Cookie -> [scentry.auth.default.user=abc456.pq.xy], REMOTE_USER -> [somebody], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT]]"
   }
 }
