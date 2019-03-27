@@ -26,8 +26,8 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  * Finally it provides a 'self-pointer' in implicit scope, such that `LogResponseSyntax` can be
  * used automatically (see the documentation of `logResponse` for an example).
  */
-trait AbstractServletLogger {
-  this: ScalatraBase with RequestLogFormatter with ResponseLogFormatter =>
+trait AbstractServletLogger extends ScalatraBase {
+  this: RequestLogFormatter with ResponseLogFormatter =>
 
   /**
    * This instance of the `AbstractServletLogger` in implicit scope.
@@ -36,6 +36,15 @@ trait AbstractServletLogger {
 
   before() {
     logRequest()
+  }
+
+  override protected def renderResponse(actionResult: Any): Unit = {
+    super.renderResponse(actionResult)
+
+    actionResult match {
+      case ar: ActionResult => logResponse(ar)
+      case _ => logResponse(ActionResult(response.status, actionResult, Map.empty))
+    }
   }
 
   /**

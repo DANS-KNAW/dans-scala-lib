@@ -41,7 +41,7 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
 
     get("/") {
       contentType = "text/plain"
-      Ok("How y'all doin'?").logResponse
+      Ok("How y'all doin'?")
     }
   }
 

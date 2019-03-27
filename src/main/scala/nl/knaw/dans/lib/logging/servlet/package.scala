@@ -149,35 +149,35 @@ package object servlet {
       }.mkString("[", ", ", "]")
     }
   }
-
-  /**
-   * Convenience syntax for logging a response.
-   *
-   * @param actionResult the `ActionResult to be logged`
-   */
-  implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
-    /**
-     * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
-     *
-     * @example
-     * {{{
-     *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-     *   import nl.knaw.dans.lib.logging.servlet._
-     *   import org.scalatra.{ Ok, ScalatraServlet }
-     *
-     *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
-     *     get("/") {
-     *       Ok("All is well").logResponse
-     *     }
-     *   }
-     * }}}
-     * @param responseLogger the logger with which to format/output the response
-     * @return the original `ActionResult`
-     */
-    def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
-      responseLogger.logResponse(actionResult)
-    }
-  }
+//
+//  /**
+//   * Convenience syntax for logging a response.
+//   *
+//   * @param actionResult the `ActionResult to be logged`
+//   */
+//  implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
+//    /**
+//     * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
+//     *
+//     * @example
+//     * {{{
+//     *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+//     *   import nl.knaw.dans.lib.logging.servlet._
+//     *   import org.scalatra.{ Ok, ScalatraServlet }
+//     *
+//     *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
+//     *     get("/") {
+//     *       Ok("All is well").logResponse
+//     *     }
+//     *   }
+//     * }}}
+//     * @param responseLogger the logger with which to format/output the response
+//     * @return the original `ActionResult`
+//     */
+//    def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
+//      responseLogger.logResponse(actionResult)
+//    }
+//  }
 
   trait PlainLogFormatter extends RequestLogFormatter with ResponseLogFormatter {
     this: ScalatraBase =>

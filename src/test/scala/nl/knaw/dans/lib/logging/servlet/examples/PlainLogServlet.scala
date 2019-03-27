@@ -25,6 +25,6 @@ class PlainLogServlet extends ScalatraServlet
   with DebugEnhancedLogging {
 
   get("/") {
-    Ok("foobar").logResponse
+    Ok("foobar")
   }
 }

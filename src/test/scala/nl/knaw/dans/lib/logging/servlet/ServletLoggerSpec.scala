@@ -20,7 +20,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatra.{ Ok, ScalatraBase, ScalatraServlet }
+import org.scalatra.{ Ok, ScalatraBase, ScalatraServlet, Unauthorized }
 import org.slf4j.{ Logger => Underlying }
 
 class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with EmbeddedJettyContainer with ScalatraSuite {
@@ -37,19 +37,23 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
 
     get("/") {
       contentType = "text/plain"
-      Ok("How y'all doin'?").logResponse
+      Ok("How y'all doin'?")
     }
 
     get("/:input") {
       contentType = "text/plain"
       val input = params("input")
-      Ok(s"I received $input").logResponse
+      Ok(s"I received $input")
     }
 
     // POST /create?input=...
     post("/create") {
       val input = params("input")
-      Ok(s"I received $input").logResponse
+      Ok(s"I received $input")
+    }
+
+    get("/halted") {
+      halt(Unauthorized(body = "invalid credentials", headers = Map("foo" -> "bar")))
     }
   }
 
@@ -127,6 +131,50 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     post(s"$testLoggerPath/create", "input" -> input) {
       body shouldBe s"I received $input"
       status shouldBe 200
+    }
+  }
+
+  it should "log when halt is called" in {
+    val serverPort = localPort.fold("None")(_.toString)
+
+    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
+    (mockedLogger.info(_: String)) expects where {
+      s: String =>
+        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath/halted") &&
+          (s contains "remote=127.0.0.1")
+    } once()
+    (mockedLogger.info(_: String)) expects where {
+      s: String =>
+        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath/halted returned status=401") &&
+          (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]") &&
+          (s contains "actionHeaders=[]")
+    } once()
+
+    get(s"$testLoggerPath/halted") {
+      body shouldBe s"invalid credentials"
+      status shouldBe 401
+    }
+  }
+
+  it should "log when a non-existing route is called" in {
+    val serverPort = localPort.fold("None")(_.toString)
+
+    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
+    (mockedLogger.info(_: String)) expects where {
+      s: String =>
+        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath/not-existing/") &&
+          (s contains "remote=127.0.0.1")
+    } once()
+    (mockedLogger.info(_: String)) expects where {
+      s: String =>
+        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath/not-existing/ returned status=404") &&
+          (s.toLowerCase contains "content-type -> [text/html;charset=utf-8]") &&
+          (s contains "actionHeaders=[]")
+    } once()
+
+    get(s"$testLoggerPath/not-existing/") {
+      body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /halted</li><li>POST /create</li></ul>""")
+      status shouldBe 404
     }
   }
 }
