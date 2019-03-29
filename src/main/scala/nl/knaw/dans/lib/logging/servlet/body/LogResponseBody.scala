@@ -29,6 +29,7 @@ private[servlet] trait LogResponseBody extends ResponseLogFormatter {
   override protected def formatResponseLog(actionResult: ActionResult): String = {
     val formattedBody = formatResponseBody(actionResult)
       .withFilter(Unit !=)
+      .withFilter(() !=)
       .map(String.valueOf)
       .map {
         case b if b.isBlank => "; body=[]"
