@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.lib.logging.servlet.masked.request
+package nl.knaw.dans.lib.logging.servlet.body
 
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
 
-private[masked] trait MaskedRequestLogFormatter extends MaskedCookie
-  with MaskedAuthorizationHeader
-  with MaskedRemoteAddress {
+private[servlet] trait LogResponseBodyAlways extends LogResponseBody {
   this: ScalatraBase =>
+
+  override protected def formatResponseBody(actionResult: ActionResult): Option[Any] = {
+    Option(actionResult.body)
+  }
 }

@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.lib.logging.servlet.masked.request
+package nl.knaw.dans.lib.logging.servlet.body
 
-import nl.knaw.dans.lib.logging.servlet.masked.Masker
-import nl.knaw.dans.lib.logging.servlet.{ MultiParamsEntry, RequestLogExtensionBase }
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
 
-private[masked] trait MaskedAuthenticationParameters extends RequestLogExtensionBase {
+private[servlet] trait LogResponseBodyOnError extends LogResponseBody {
   this: ScalatraBase =>
 
-  abstract override protected def formatParameter(param: MultiParamsEntry): MultiParamsEntry = {
-    Masker.formatAuthenticationParameter(super.formatParameter(param))
+  private def isErrorResult(actionResult: ActionResult): Boolean = {
+    val status = actionResult.status
+    400 <= status && status <= 599
+  }
+
+  override protected def formatResponseBody(actionResult: ActionResult): Option[Any] = {
+    if (isErrorResult(actionResult))
+      Option(actionResult.body)
+    else Option.empty
   }
 }

@@ -75,12 +75,11 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
 
       val requestLine :: responseLine :: Nil = resultLines
 
-      requestLine should startWith(s"GET http://localhost:$port$path")
+      requestLine should startWith(s"request GET http://localhost:$port$path")
       requestLine should include(s"remote=$formattedRemote;")
 
-      responseLine should startWith(s"GET http://localhost:$port$path returned status=200; ")
+      responseLine should startWith(s"response GET http://localhost:$port$path returned status=200; headers=[")
       responseLine.toLowerCase() should include(s"content-type -> [text/plain;charset=utf-8]")
-      responseLine should include(s"actionHeaders=[]")
     }
   }
 }
