@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.lib.logging
 
-import org.scalatra.{ ActionResult, ScalatraBase }
+import org.scalatra.ScalatraBase
 
 /**
  * Package for logging servlet requests and responses in a standardized format.

@@ -27,6 +27,6 @@ class LogWithBodyOnErrorServlet extends ScalatraServlet
   with DebugEnhancedLogging {
 
   get("/") {
-    NotAcceptable("foobar").logResponse
+    NotAcceptable("foobar")
   }
 }
