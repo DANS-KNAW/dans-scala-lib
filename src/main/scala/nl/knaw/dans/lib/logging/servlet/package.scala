@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.lib.logging
 
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
 
 /**
  * Package for logging servlet requests and responses in a standardized format.
@@ -39,7 +39,7 @@ import org.scalatra.ScalatraBase
  * In the example below we use `DebugEnhancedLogging` for the latter. The `PlainLogFormatter`
  * and `MaskedLogFormatter` both implement the two LogFormatters. The latter masks privacy sensitive
  * values like user names, passwords and remote addresses.
- * 
+ *
  * To also log the body of a response, either add `LogResponseBodyAlways` or `LogResponseBodyOnError`.
  *
  * When you want to mask less, for example to debug tests, add individual
@@ -58,7 +58,7 @@ import org.scalatra.ScalatraBase
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  *
@@ -69,7 +69,7 @@ import org.scalatra.ScalatraBase
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  *
@@ -83,7 +83,7 @@ import org.scalatra.ScalatraBase
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  * }}}
@@ -121,7 +121,7 @@ import org.scalatra.ScalatraBase
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  * }}}
@@ -152,35 +152,39 @@ package object servlet {
       }.mkString("[", ", ", "]")
     }
   }
-//
-//  /**
-//   * Convenience syntax for logging a response.
-//   *
-//   * @param actionResult the `ActionResult to be logged`
-//   */
-//  implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
-//    /**
-//     * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
-//     *
-//     * @example
-//     * {{{
-//     *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-//     *   import nl.knaw.dans.lib.logging.servlet._
-//     *   import org.scalatra.{ Ok, ScalatraServlet }
-//     *
-//     *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
-//     *     get("/") {
-//     *       Ok("All is well").logResponse
-//     *     }
-//     *   }
-//     * }}}
-//     * @param responseLogger the logger with which to format/output the response
-//     * @return the original `ActionResult`
-//     */
-//    def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
-//      responseLogger.logResponse(actionResult)
-//    }
-//  }
+
+  /**
+   * Convenience syntax for logging a response.
+   *
+   * @param actionResult the `ActionResult to be logged`
+   */
+  @deprecated("Using .logResponse is no longer necessary. " +
+    "Continued usage will result in the response being logged twice.", "1.5.1")
+  implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
+    /**
+     * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
+     *
+     * @example
+     * {{{
+     *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+     *   import nl.knaw.dans.lib.logging.servlet._
+     *   import org.scalatra.{ Ok, ScalatraServlet }
+     *
+     *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
+     *     get("/") {
+     *       Ok("All is well").logResponse
+     *     }
+     *   }
+     * }}}
+     * @param responseLogger the logger with which to format/output the response
+     * @return the original `ActionResult`
+     */
+    @deprecated("Using .logResponse is no longer necessary. " +
+      "Continued usage will result in the response being logged twice.", "1.5.1")
+    def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
+      responseLogger.logResponse(actionResult)
+    }
+  }
 
   trait PlainLogFormatter extends RequestLogFormatter with ResponseLogFormatter {
     this: ScalatraBase =>
