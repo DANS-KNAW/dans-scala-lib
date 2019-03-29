@@ -67,7 +67,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath") &&
+        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath") &&
           (s contains "remote=127.0.0.1")
     } once()
     (mockedLogger.info(_: String)) expects * once()
@@ -84,9 +84,8 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"GET http://localhost:$port$testLoggerPath returned status=200") &&
-          (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]") &&
-          (s contains "actionHeaders=[]")
+        (s startsWith s"response GET http://localhost:$port$testLoggerPath returned status=200; headers=[") &&
+          (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]")
     } once()
     (mockedLogger.info(_: String)) expects * once()
 
@@ -103,7 +102,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"GET http://localhost:$serverPort$testLoggerPath/$input") &&
+        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/$input") &&
           (s contains "remote=127.0.0.1")
     } once()
     (mockedLogger.info(_: String)) expects * once()
@@ -121,7 +120,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
     (mockedLogger.info(_: String)) expects where {
       s: String =>
-        (s startsWith s"POST http://localhost:$serverPort$testLoggerPath/create") &&
+        (s startsWith s"request POST http://localhost:$serverPort$testLoggerPath/create") &&
           (s contains "remote=127.0.0.1") &&
           (s contains s"params=[input -> [$input]")
     } once()

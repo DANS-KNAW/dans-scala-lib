@@ -41,10 +41,11 @@ trait ResponseLogFormatter {
     val method = request.getMethod
     val requestURL = request.getRequestURL.toString
     val status = actionResult.status
-    val formattedAuthHeaders = formatResponseHeaders(getHeaderMap(response)).makeString
-    val formattedActionHeaders = formatActionHeaders(actionResult.headers).makeString
+    val formattedAuthHeaders = formatResponseHeaders(getHeaderMap(response))
+    val formattedActionHeaders = formatActionHeaders(actionResult.headers).mapValues(List(_))
+    val headers = (formattedAuthHeaders ++ formattedActionHeaders).makeString
 
-    s"$method $requestURL returned status=$status; authHeaders=$formattedAuthHeaders; actionHeaders=$formattedActionHeaders"
+    s"response $method $requestURL returned status=$status; headers=$headers"
   }
 
   /**

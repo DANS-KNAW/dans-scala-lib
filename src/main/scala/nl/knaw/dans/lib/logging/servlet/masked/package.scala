@@ -19,7 +19,6 @@ import org.scalatra.ScalatraBase
 
 package object masked {
 
-  type MaskedAuthenticationParameters = request.MaskedAuthenticationParameters
   type MaskedAuthorizationHeader = request.MaskedAuthorizationHeader
   type MaskedCookie = request.MaskedCookie
   type MaskedRemoteAddress = request.MaskedRemoteAddress

@@ -39,6 +39,8 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  * In the example below we use `DebugEnhancedLogging` for the latter. The `PlainLogFormatter`
  * and `MaskedLogFormatter` both implement the two LogFormatters. The latter masks privacy sensitive
  * values like user names, passwords and remote addresses.
+ * 
+ * To also log the body of a response, either add `LogResponseBodyAlways` or `LogResponseBodyOnError`.
  *
  * When you want to mask less, for example to debug tests, add individual
  * parts of the `MaskedLogFormatter` to the `PlainLogFormatter`.
@@ -52,6 +54,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  *    class ExampleServlet extends ScalatraServlet
  *      with ServletLogger
  *      with PlainLogFormatter
+ *      with LogResponseBodyOnError
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
@@ -184,4 +187,8 @@ package object servlet {
   }
 
   type MaskedLogFormatter = masked.MaskedLogFormatter
+
+  type LogResponseBody = body.LogResponseBody
+  type LogResponseBodyAlways = body.LogResponseBodyAlways
+  type LogResponseBodyOnError = body.LogResponseBodyOnError
 }

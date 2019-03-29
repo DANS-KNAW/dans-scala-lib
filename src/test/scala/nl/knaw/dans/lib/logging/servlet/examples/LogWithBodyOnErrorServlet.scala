@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.lib.logging.servlet.masked.request
+package nl.knaw.dans.lib.logging.servlet.examples
 
-import org.scalatra.ScalatraBase
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.logging.servlet.body.LogResponseBodyOnError
+import org.scalatra.{ NotAcceptable, ScalatraServlet }
 
-private[masked] trait MaskedRequestLogFormatter extends MaskedCookie
-  with MaskedAuthorizationHeader
-  with MaskedRemoteAddress {
-  this: ScalatraBase =>
+class LogWithBodyOnErrorServlet extends ScalatraServlet
+  with ServletLogger
+  with PlainLogFormatter
+  with LogResponseBodyOnError
+  with DebugEnhancedLogging {
+
+  get("/") {
+    NotAcceptable("foobar").logResponse
+  }
 }
