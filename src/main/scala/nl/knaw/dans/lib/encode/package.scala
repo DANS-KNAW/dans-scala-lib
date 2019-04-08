@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 package object encode {
 
   // PercentEscaper that escapes all characters except '_' and English alphanumerical characters
-  private val bagStorePercentEscaper = new PercentEscaper("_", false)
+  private val percentEscaper = new PercentEscaper("_", false)
 
   implicit class PathEncoding(val path: Path) extends AnyVal {
 
@@ -31,16 +31,17 @@ package object encode {
      *
      * @example
      * {{{
-     *    import nl.knaw.dans.lib.encode.PathEncoding
+     *    import nl.knaw.dans.lib.encode._
      *    import java.nio.file.Paths
      *
-     *    val path = Paths.get("an/example/path-123/file.txt)"
+     *    val path = Paths.get("an/example/path_123/test-file(#3).txt")
      *    val escapedPath = path.escapePath
+     *    // escapedPath: "an/example/path_123/test%2Dfile%28%233%29%2Etxt"
      *  }}}
      * @return an escaped path
      */
     def escapePath: String = {
-      path.asScala.map(_.toString).map(bagStorePercentEscaper.escape).mkString("/")
+      path.asScala.map(_.toString).map(percentEscaper.escape).mkString("/")
     }
   }
 
@@ -51,14 +52,15 @@ package object encode {
      *
      * @example
      * {{{
-     *    import import nl.knaw.dans.lib.encode.StringEncoding
+     *    import import nl.knaw.dans.lib.encode._
      *
-     *    "an example string".escapeString
+     *    "10.17026/dans-23n-v3pq".escapeString
+     *    // result: "10%2E17026%2Fdans%2D23n%2Dv3pq"
      *  }}}
      * @return an escaped string
      */
     def escapeString: String = {
-      bagStorePercentEscaper.escape(s)
+      percentEscaper.escape(s)
     }
   }
 }
