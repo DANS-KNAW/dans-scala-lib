@@ -19,7 +19,7 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedRemoteAddress
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatra.{ ActionResult, Ok, ScalatraBase, ScalatraServlet }
+import org.scalatra.{ Ok, ScalatraBase, ScalatraServlet }
 
 class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJettyContainer with ScalatraSuite {
 
@@ -28,19 +28,20 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
     with RequestLogFormatter {
     this: ScalatraBase =>
 
-    override def logResponse(actionResult: ActionResult): ActionResult = {
-      stringBuilder append formatResponseLog(actionResult) append "\n"
-      actionResult
+    override protected def logRequest(logLine: String): Unit = {
+      stringBuilder append logLine append "\n"
     }
 
-    override def logRequest(): Unit = stringBuilder append formatRequestLog append "\n"
+    override protected def logResponse(logLine: String): Unit = {
+      stringBuilder append logLine append "\n"
+    }
   }
 
   private class TestServlet() extends ScalatraServlet with TestLoggers {
 
     get("/") {
       contentType = "text/plain"
-      Ok("How y'all doin'?").logResponse
+      Ok("How y'all doin'?")
     }
   }
 
@@ -74,12 +75,11 @@ class AbstractServletLoggerSpec extends FlatSpec with Matchers with EmbeddedJett
 
       val requestLine :: responseLine :: Nil = resultLines
 
-      requestLine should startWith(s"GET http://localhost:$port$path")
+      requestLine should startWith(s"request GET http://localhost:$port$path")
       requestLine should include(s"remote=$formattedRemote;")
 
-      responseLine should startWith(s"GET http://localhost:$port$path returned status=200; ")
+      responseLine should startWith(s"response GET http://localhost:$port$path returned status=200; headers=[")
       responseLine.toLowerCase() should include(s"content-type -> [text/plain;charset=utf-8]")
-      responseLine should include(s"actionHeaders=[]")
     }
   }
 }

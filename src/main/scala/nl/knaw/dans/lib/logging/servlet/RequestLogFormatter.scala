@@ -45,7 +45,7 @@ trait RequestLogFormatter {
     val formattedRemoteAddress = formatRemoteAddress(Option(request.getRemoteAddr).getOrElse(""))
 
     // TODO perhaps more of https://github.com/scalatra/scalatra/blob/2.7.x/core/src/main/scala/org/scalatra/util/RequestLogging.scala#L70-L85
-    s"$method $requestURL remote=$formattedRemoteAddress; params=$formattedParams; headers=$formattedHeaders"
+    s"request $method $requestURL remote=$formattedRemoteAddress; params=$formattedParams; headers=$formattedHeaders"
   }
 
   /**

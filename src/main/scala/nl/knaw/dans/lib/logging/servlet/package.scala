@@ -40,6 +40,8 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  * and `MaskedLogFormatter` both implement the two LogFormatters. The latter masks privacy sensitive
  * values like user names, passwords and remote addresses.
  *
+ * To also log the body of a response, either add `LogResponseBodyAlways` or `LogResponseBodyOnError`.
+ *
  * When you want to mask less, for example to debug tests, add individual
  * parts of the `MaskedLogFormatter` to the `PlainLogFormatter`.
  *
@@ -52,10 +54,11 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  *    class ExampleServlet extends ScalatraServlet
  *      with ServletLogger
  *      with PlainLogFormatter
+ *      with LogResponseBodyOnError
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  *
@@ -66,7 +69,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  *
@@ -80,7 +83,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  * }}}
@@ -118,7 +121,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  *      with DebugEnhancedLogging {
  *
  *      get("/") {
- *        Ok("All is well").logResponse
+ *        Ok("All is well")
  *      }
  *    }
  * }}}
@@ -155,6 +158,8 @@ package object servlet {
    *
    * @param actionResult the `ActionResult to be logged`
    */
+  @deprecated("Using .logResponse is no longer necessary. " +
+    "Continued usage will result in the response being logged twice.", "1.5.1")
   implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
     /**
      * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
@@ -174,6 +179,8 @@ package object servlet {
      * @param responseLogger the logger with which to format/output the response
      * @return the original `ActionResult`
      */
+    @deprecated("Using .logResponse is no longer necessary. " +
+      "Continued usage will result in the response being logged twice.", "1.5.1")
     def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
       responseLogger.logResponse(actionResult)
     }
@@ -184,4 +191,8 @@ package object servlet {
   }
 
   type MaskedLogFormatter = masked.MaskedLogFormatter
+
+  type LogResponseBody = body.LogResponseBody
+  type LogResponseBodyAlways = body.LogResponseBodyAlways
+  type LogResponseBodyOnError = body.LogResponseBodyOnError
 }

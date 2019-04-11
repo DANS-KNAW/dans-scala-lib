@@ -23,64 +23,63 @@ import org.scalatra.{ ActionResult, ScalatraBase }
  * and `logResponse`.
  * Furthermore it adds a call to `logRequest` to the 'before filters' of `ScalatraBase`,
  * such that this method is called automatically on every request that comes in.
- * Finally it provides a 'self-pointer' in implicit scope, such that `LogResponseSyntax` can be
- * used automatically (see the documentation of `logResponse` for an example).
+ * Also it extends the Scalatra's `renderResponse` method with a call to `logResponse`.
  */
-trait AbstractServletLogger {
-  this: ScalatraBase =>
+trait AbstractServletLogger extends ScalatraBase {
+  this: RequestLogFormatter with ResponseLogFormatter =>
 
   /**
    * This instance of the `AbstractServletLogger` in implicit scope.
    */
+  @deprecated("not necessary anymore, will be deleted in future version.", "1.5.1")
   implicit val responseLogger: AbstractServletLogger = this
 
   before() {
     logRequest()
   }
 
+  override protected def renderResponse(actionResult: Any): Unit = {
+    super.renderResponse(actionResult)
+
+    logResponse {
+      actionResult match {
+        case ar: ActionResult => ar
+        case _ => ActionResult(response.status, actionResult, Map.empty)
+      }
+    }
+  }
+
+  /**
+   * Output the given request `logLine` as desired.
+   *
+   * @param logLine the log line to be outputted
+   */
+  protected def logRequest(logLine: String): Unit
+
+  /**
+   * Output the given response `logLine` as desired.
+   *
+   * @param logLine the log line to be outputted
+   */
+  protected def logResponse(logLine: String): Unit
+
   /**
    * Performs the side effect of the logging of the request.
    * This method is typically not called in user code, but rather in `ScalatraBase`'s `before` filter.
    */
-  def logRequest(): Unit
+  def logRequest(): Unit = logRequest(formatRequestLog)
 
   /**
    * Performs the side effect of the logging of the response, contained in the given `ActionResult`.
-   * This method is either called directly or via the extension method provided by
-   * `LogResponseSyntax`.
-   * In the examples below the two syntaxes are shown. Please note that the only difference is
-   * `logResponse { Ok() }` vs. `Ok().logResponse`.
    *
-   * @example
-   * {{{
-   *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-   *   import nl.knaw.dans.lib.logging.servlet._
-   *   import org.scalatra.{ Ok, ScalatraServlet }
-   *
-   *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
-   *     get("/") {
-   *       logResponse {
-   *         Ok("All is well")
-   *       }
-   *     }
-   *   }
-   * }}}
-   * @example
-   * {{{
-   *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-   *   import nl.knaw.dans.lib.logging.servlet._
-   *   import org.scalatra.{ Ok, ScalatraServlet }
-   *
-   *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
-   *     get("/") {
-   *       Ok("All is well").logResponse
-   *     }
-   *   }
-   * }}}
    * @param actionResult the `ActionResult to be logged`
    * @return the original `ActionResult`
    */
-  def logResponse(actionResult: ActionResult): ActionResult
+  // TODO remove return type in future version, once `.logResponse` syntax is deleted
+  def logResponse(actionResult: ActionResult): ActionResult = {
+    logResponse(formatResponseLog(actionResult))
+    actionResult
+  }
 }
 
 /**
@@ -101,13 +100,10 @@ trait ServletLogger extends AbstractServletLogger {
   /**
    * @inheritdoc
    */
-  override def logRequest(): Unit = logger.info(formatRequestLog)
+  override protected def logRequest(logLine: String): Unit = logger.info(logLine)
 
   /**
    * @inheritdoc
    */
-  override def logResponse(actionResult: ActionResult): ActionResult = {
-    logger.info(formatResponseLog(actionResult))
-    actionResult
-  }
+  override protected def logResponse(logLine: String): Unit = logger.info(logLine)
 }
