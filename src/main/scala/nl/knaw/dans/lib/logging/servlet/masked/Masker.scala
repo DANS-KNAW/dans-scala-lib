@@ -20,11 +20,7 @@ import nl.knaw.dans.lib.logging.servlet.HeaderMapEntry
 object Masker {
 
   def formatCookie(value: String): String = {
-    val cookieName = value.replaceAll("=.*", "")
-    val cookieValue = value.replaceFirst("[^=]+=", "")
-    // replace sequences of chars without dots
-    val maskedCookieValue = cookieValue.replaceAll("[^.]+", "****")
-    s"$cookieName=$maskedCookieValue"
+    s"${ value.replaceAll("=.*", "") }=****"
   }
 
   /**
