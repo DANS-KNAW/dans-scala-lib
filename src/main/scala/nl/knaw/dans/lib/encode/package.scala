@@ -40,7 +40,7 @@ package object encode {
      *  }}}
      * @return an escaped path
      */
-    def escapePath: String = {
+    def escapePath(implicit escaper: PercentEscaper = bagStorePercentEscaper): String = {
       path.asScala.map(_.toString.escapeString).mkString("/")
     }
   }
@@ -59,8 +59,8 @@ package object encode {
      *  }}}
      * @return an escaped string
      */
-    def escapeString: String = {
-      bagStorePercentEscaper.escape(s)
+    def escapeString(implicit percentEscaper: PercentEscaper = bagStorePercentEscaper): String = {
+      percentEscaper.escape(s)
     }
   }
 }
