@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 package object encode {
 
   // PercentEscaper that escapes all characters except '_' and English alphanumerical characters
-  private val percentEscaper = new PercentEscaper("_", false)
+  private val bagStorePercentEscaper = new PercentEscaper("_", false)
 
   implicit class PathEncoding(val path: Path) extends AnyVal {
 
@@ -41,7 +41,7 @@ package object encode {
      * @return an escaped path
      */
     def escapePath: String = {
-      path.asScala.map(_.toString).map(percentEscaper.escape).mkString("/")
+      path.asScala.map(_.toString.escapeString).mkString("/")
     }
   }
 
@@ -60,7 +60,7 @@ package object encode {
      * @return an escaped string
      */
     def escapeString: String = {
-      percentEscaper.escape(s)
+      bagStorePercentEscaper.escape(s)
     }
   }
 }
