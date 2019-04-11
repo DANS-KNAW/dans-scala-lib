@@ -24,13 +24,13 @@ class MaskerSpec extends FlatSpec with Matchers {
   private val cookie = s"$cookieKey=$cookieValue"
 
   "formatCookie" should "replaces cookie value with ****" in {
-    Masker.formatCookie(cookie) shouldBe s"$cookieKey=****.****.****"
+    Masker.formatCookie(cookie) shouldBe s"$cookieKey=****"
   }
 
   it should "also replace = sign in the cookie value" in {
     val value = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NDcyMDc2MjksImlhdCI6MTU0NzIwNDAyOSwidWlkIjoidXNlcjAwMSJ9.UH3bMyWaUi=mn0ctbEcThh4hx5LlvYJ61kfvzU4O5JPI"
     val cookie = s"$cookieKey=$value"
-    Masker.formatCookie(cookie) shouldBe s"$cookieKey=****.****.****"
+    Masker.formatCookie(cookie) shouldBe s"$cookieKey=****"
   }
 
   "formatRemoteAddress" should "replace the first part of an IPv4 remote address" in {
@@ -40,13 +40,13 @@ class MaskerSpec extends FlatSpec with Matchers {
   "formatCookieHeader" should "format a cookie with given header name" in {
     val cookieName = "my-cookie"
     Masker.formatCookieHeader(cookieName)(Masker.formatCookie)(cookieName -> Seq(cookie)) shouldBe
-      cookieName -> Seq(s"$cookieKey=****.****.****")
+      cookieName -> Seq(s"$cookieKey=****")
   }
 
   it should "format a cookie with given header name (after lowercasing)" in {
     val cookieName = "my-cookie"
     Masker.formatCookieHeader(cookieName)(Masker.formatCookie)(cookieName.toUpperCase -> Seq(cookie)) shouldBe
-      cookieName.toUpperCase -> Seq(s"$cookieKey=****.****.****")
+      cookieName.toUpperCase -> Seq(s"$cookieKey=****")
   }
 
   it should "not format a header with another name than the given one" in {

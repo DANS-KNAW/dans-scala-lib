@@ -60,7 +60,7 @@ class ResponseLogFormatterSpec extends FlatSpec with Matchers with MockFactory w
   it should "mask everything when using the MaskedResponseLogFormatter" in {
     val testServlet: TestServlet = new TestServlet() with MaskedResponseLogFormatter
     testServlet.formatResponseLog(actionResult) shouldBe
-      "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=****.****.****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
+      "response GET http://does.not.exist.dans.knaw.nl returned status=200; headers=[Set-Cookie -> [scentry.auth.default.user=****], REMOTE_USER -> [*****], Expires -> [Thu, 01 Jan 1970 00:00:00 GMT], some -> [header]]"
   }
 
   it should "add the response body when using LogResponseBodyAlways" in {
