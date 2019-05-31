@@ -15,8 +15,11 @@
  */
 package nl.knaw.dans.lib
 
-import com.google.common.net.PercentEscaper
 import java.nio.file.Path
+
+import com.google.common.escape.Escaper
+import com.google.common.net.PercentEscaper
+
 import scala.collection.JavaConverters._
 
 package object encode {
@@ -40,7 +43,7 @@ package object encode {
      *  }}}
      * @return an escaped path
      */
-    def escapePath(implicit escaper: PercentEscaper = bagStorePercentEscaper): String = {
+    def escapePath(implicit escaper: Escaper = bagStorePercentEscaper): String = {
       path.asScala.map(_.toString.escapeString).mkString("/")
     }
   }
@@ -59,8 +62,8 @@ package object encode {
      *  }}}
      * @return an escaped string
      */
-    def escapeString(implicit percentEscaper: PercentEscaper = bagStorePercentEscaper): String = {
-      percentEscaper.escape(s)
+    def escapeString(implicit escaper: Escaper = bagStorePercentEscaper): String = {
+      escaper.escape(s)
     }
   }
 }
