@@ -28,12 +28,6 @@ import org.scalatra.{ ActionResult, ScalatraBase }
 trait AbstractServletLogger extends ScalatraBase {
   this: RequestLogFormatter with ResponseLogFormatter =>
 
-  /**
-   * This instance of the `AbstractServletLogger` in implicit scope.
-   */
-  @deprecated("not necessary anymore, will be deleted in future version.", "1.5.1")
-  implicit val responseLogger: AbstractServletLogger = this
-
   before() {
     logRequest()
   }
@@ -73,13 +67,8 @@ trait AbstractServletLogger extends ScalatraBase {
    * Performs the side effect of the logging of the response, contained in the given `ActionResult`.
    *
    * @param actionResult the `ActionResult to be logged`
-   * @return the original `ActionResult`
    */
-  // TODO remove return type in future version, once `.logResponse` syntax is deleted
-  def logResponse(actionResult: ActionResult): ActionResult = {
-    logResponse(formatResponseLog(actionResult))
-    actionResult
-  }
+  def logResponse(actionResult: ActionResult): Unit = logResponse(formatResponseLog(actionResult))
 }
 
 /**

@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.lib.logging
 
-import org.scalatra.{ ActionResult, ScalatraBase }
+import org.scalatra.ScalatraBase
 
 /**
  * Package for logging servlet requests and responses in a standardized format.
@@ -150,39 +150,6 @@ package object servlet {
         case (k, v: Map[_, _]) => k -> v.makeString
         case kv => kv
       }.mkString("[", ", ", "]")
-    }
-  }
-
-  /**
-   * Convenience syntax for logging a response.
-   *
-   * @param actionResult the `ActionResult to be logged`
-   */
-  @deprecated("Using .logResponse is no longer necessary. " +
-    "Continued usage will result in the response being logged twice.", "1.5.1")
-  implicit class LogResponseSyntax(val actionResult: ActionResult) extends AnyVal {
-    /**
-     * Performs the side effect of the logging of the response, contained in the given `ActionResult`.\
-     *
-     * @example
-     * {{{
-     *   import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-     *   import nl.knaw.dans.lib.logging.servlet._
-     *   import org.scalatra.{ Ok, ScalatraServlet }
-     *
-     *   class ExampleServlet extends ScalatraServlet with ServletLogger with DebugEnhancedLogging {
-     *     get("/") {
-     *       Ok("All is well").logResponse
-     *     }
-     *   }
-     * }}}
-     * @param responseLogger the logger with which to format/output the response
-     * @return the original `ActionResult`
-     */
-    @deprecated("Using .logResponse is no longer necessary. " +
-      "Continued usage will result in the response being logged twice.", "1.5.1")
-    def logResponse(implicit responseLogger: AbstractServletLogger): ActionResult = {
-      responseLogger.logResponse(actionResult)
     }
   }
 
