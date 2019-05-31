@@ -16,6 +16,7 @@
 package nl.knaw.dans.lib.logging.servlet
 
 import com.typesafe.scalalogging.Logger
+import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import org.scalatra.{ ActionResult, ScalatraBase }
 
 /**
@@ -38,6 +39,9 @@ trait AbstractServletLogger extends ScalatraBase {
     logRequest()
   }
 
+  /**
+   * @inheritdoc
+   */
   override protected def renderResponse(actionResult: Any): Unit = {
     super.renderResponse(actionResult)
 
@@ -106,4 +110,15 @@ trait ServletLogger extends AbstractServletLogger {
    * @inheritdoc
    */
   override protected def logResponse(logLine: String): Unit = logger.info(logLine)
+
+  /**
+   * @inheritdoc
+   */
+  override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    super.renderUncaughtException(e)
+
+    val method = request.getMethod
+    val requestURL = request.getRequestURL.toString
+    logger.warn(s"response $method $requestURL resulted in an uncaught exception: ${e.getMessage}", e)
+  }
 }

@@ -45,7 +45,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
       val input = params("input")
       Ok(s"I received $input")
     }
-    
+
     get("/unit") {
       Forbidden()
     }
@@ -58,6 +58,10 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
 
     get("/halted") {
       halt(Unauthorized(body = "invalid credentials", headers = Map("foo" -> "bar")))
+    }
+
+    get("/error") {
+      throw new IllegalArgumentException("this is an error!!!")
     }
   }
 
@@ -182,6 +186,24 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     }
   }
 
+  it should "call the renderUncaughtException when an exception is thrown in the servlet route" in {
+    val serverPort = localPort.fold("None")(_.toString)
+
+    (() => mockedLogger.isInfoEnabled()) expects() once() returning true
+    (() => mockedLogger.isWarnEnabled()) expects() once() returning true
+    (mockedLogger.info(_: String)) expects where {
+      s: String =>
+        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/error") &&
+          (s contains "remote=127.0.0.1")
+    } once()
+    (mockedLogger.warn(_: String, _: Throwable)) expects (s"response GET http://localhost:$serverPort$testLoggerPath/error resulted in an uncaught exception: this is an error!!!", *) once()
+
+    get(s"$testLoggerPath/error") {
+      body should startWith("java.lang.IllegalArgumentException: this is an error!!!")
+      status shouldBe 500
+    }
+  }
+
   it should "log when a non-existing route is called" in {
     val serverPort = localPort.fold("None")(_.toString)
 
@@ -199,7 +221,7 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     } once()
 
     get(s"$testLoggerPath/not-existing/") {
-      body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /halted</li><li>GET /unit</li><li>POST /create</li></ul>""")
+      body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /error</li><li>GET /halted</li><li>GET /unit</li><li>POST /create</li></ul>""")
       status shouldBe 404
     }
   }
