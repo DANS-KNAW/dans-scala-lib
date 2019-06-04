@@ -18,9 +18,9 @@ package nl.knaw.dans.lib.logging.servlet
 import com.typesafe.scalalogging.Logger
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatra._
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatra.{ Forbidden, Ok, ScalatraBase, ScalatraServlet, Unauthorized }
 import org.slf4j.{ Logger => Underlying }
 
 class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with EmbeddedJettyContainer with ScalatraSuite {
@@ -69,16 +69,39 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
 
   addServlet(new TestServlet(), testLoggerPath)
 
+  private def infoLogEnabled(times: Int) = {
+    (() => mockedLogger.isInfoEnabled()) expects() repeated times returning true
+  }
+
+  private def warnLogEnabled(times: Int) = {
+    (() => mockedLogger.isWarnEnabled()) expects() repeated times returning true
+  }
+
+  private def expectInfoLogMessage(predicates: (String => Boolean)*) = {
+    (mockedLogger.info(_: String)) expects where {
+      s: String => predicates forall (_ (s))
+    } once()
+  }
+
+  private def expectAnyInfoLog(times: Int = 1) = {
+    (mockedLogger.info(_: String)) expects * repeated times
+  }
+
+  private def expectWarnLogMessage(predicates: (String => Boolean)*) = {
+    (mockedLogger.warn(_: String, _: Throwable)) expects where {
+      (s, _) => predicates forall (_ (s))
+    }
+  }
+
   "TestServlet" should "call the logRequest on an incoming request" in {
     val serverPort = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.info(_: String)) expects * once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath",
+      _ contains "remote=127.0.0.1"
+    )
+    expectAnyInfoLog()
 
     get(testLoggerPath) {
       body shouldBe "How y'all doin'?"
@@ -89,13 +112,12 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   it should "call the logResponse on sending a response" in {
     val port = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"response GET http://localhost:$port$testLoggerPath returned status=200; headers=[") &&
-          (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]")
-    } once()
-    (mockedLogger.info(_: String)) expects * once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"response GET http://localhost:$port$testLoggerPath returned status=200; headers=[",
+      _.toLowerCase contains "content-type -> [text/plain;charset=utf-8]"
+    )
+    expectAnyInfoLog()
 
     get(testLoggerPath) {
       body shouldBe "How y'all doin'?"
@@ -107,13 +129,12 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     val serverPort = localPort.fold("None")(_.toString)
     val input = "my-input-string"
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/$input") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.info(_: String)) expects * once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/$input",
+      _ contains "remote=127.0.0.1"
+    )
+    expectAnyInfoLog()
 
     get(s"$testLoggerPath/$input") {
       body shouldBe s"I received $input"
@@ -124,18 +145,16 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   it should "deal appropriately with Unit content" in {
     val serverPort = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/unit") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"response GET http://localhost:$serverPort$testLoggerPath/unit returned status=403") &&
-          (s.toLowerCase contains "content-type -> [text/html;charset=utf-8]") &&
-          !(s contains "; body=[") // because of Unit response in error
-    } once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/unit",
+      _ contains "remote=127.0.0.1"
+    )
+    expectInfoLogMessage(
+      _ startsWith s"response GET http://localhost:$serverPort$testLoggerPath/unit returned status=403",
+      _.toLowerCase contains "content-type -> [text/html;charset=utf-8]",
+      s => !(s contains "; body=[") // because of Unit response in error
+    )
 
     get(s"$testLoggerPath/unit") {
       body shouldBe empty
@@ -147,14 +166,13 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
     val serverPort = localPort.fold("None")(_.toString)
     val input = "my-input-string"
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request POST http://localhost:$serverPort$testLoggerPath/create") &&
-          (s contains "remote=127.0.0.1") &&
-          (s contains s"params=[input -> [$input]")
-    } once()
-    (mockedLogger.info(_: String)) expects * once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request POST http://localhost:$serverPort$testLoggerPath/create",
+      _ contains "remote=127.0.0.1",
+      _ contains s"params=[input -> [$input]",
+    )
+    expectAnyInfoLog()
 
     // POST http://localhost:$serverPort/$testLoggerPath/create?input=$input
     post(s"$testLoggerPath/create", "input" -> input) {
@@ -166,19 +184,17 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   it should "log when halt is called" in {
     val serverPort = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/halted") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"response GET http://localhost:$serverPort$testLoggerPath/halted returned status=401") &&
-          (s.toLowerCase contains "content-type -> [text/plain;charset=utf-8]") &&
-          (s.toLowerCase contains "foo -> [bar]") &&
-          (s contains "; body=[invalid credentials]")
-    } once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/halted",
+      _ contains "remote=127.0.0.1",
+    )
+    expectInfoLogMessage(
+      _ startsWith s"response GET http://localhost:$serverPort$testLoggerPath/halted returned status=401",
+      _.toLowerCase contains "content-type -> [text/plain;charset=utf-8]",
+      _.toLowerCase contains "foo -> [bar]",
+      _ contains "; body=[invalid credentials]",
+    )
 
     get(s"$testLoggerPath/halted") {
       body shouldBe s"invalid credentials"
@@ -189,14 +205,15 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   it should "call the renderUncaughtException when an exception is thrown in the servlet route" in {
     val serverPort = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() once() returning true
-    (() => mockedLogger.isWarnEnabled()) expects() once() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/error") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.warn(_: String, _: Throwable)) expects (s"response GET http://localhost:$serverPort$testLoggerPath/error resulted in an uncaught exception: this is an error!!!", *) once()
+    infoLogEnabled(1)
+    warnLogEnabled(1)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/error",
+      _ contains "remote=127.0.0.1",
+    )
+    expectWarnLogMessage(
+      _ == s"response GET http://localhost:$serverPort$testLoggerPath/error resulted in an uncaught exception: this is an error!!!"
+    )
 
     get(s"$testLoggerPath/error") {
       body should startWith("java.lang.IllegalArgumentException: this is an error!!!")
@@ -207,18 +224,16 @@ class ServletLoggerSpec extends FlatSpec with Matchers with MockFactory with Emb
   it should "log when a non-existing route is called" in {
     val serverPort = localPort.fold("None")(_.toString)
 
-    (() => mockedLogger.isInfoEnabled()) expects() twice() returning true
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"request GET http://localhost:$serverPort$testLoggerPath/not-existing/") &&
-          (s contains "remote=127.0.0.1")
-    } once()
-    (mockedLogger.info(_: String)) expects where {
-      s: String =>
-        (s startsWith s"response GET http://localhost:$serverPort$testLoggerPath/not-existing/ returned status=404") &&
-          (s.toLowerCase contains "content-type -> [text/html;charset=utf-8]") &&
-          !(s contains "; body=[") // because the body cannot be picked up due to the implementation of Scalatra
-    } once()
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/not-existing/",
+      _ contains "remote=127.0.0.1",
+    )
+    expectInfoLogMessage(
+      _ startsWith s"response GET http://localhost:$serverPort$testLoggerPath/not-existing/ returned status=404",
+      _.toLowerCase contains "content-type -> [text/html;charset=utf-8]",
+      s => !(s contains "; body=["), // because the body cannot be picked up due to the implementation of Scalatra
+    )
 
     get(s"$testLoggerPath/not-existing/") {
       body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /error</li><li>GET /halted</li><li>GET /unit</li><li>POST /create</li></ul>""")
