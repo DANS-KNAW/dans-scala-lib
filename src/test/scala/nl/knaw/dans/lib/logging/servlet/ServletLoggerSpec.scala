@@ -24,6 +24,8 @@ import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 import org.slf4j.{ Logger => Underlying }
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 class ServletLoggerSpec extends AnyFlatSpec with Matchers with MockFactory with EmbeddedJettyContainer with ScalatraSuite {
 
   private val mockedLogger = mock[Underlying]
@@ -34,7 +36,8 @@ class ServletLoggerSpec extends AnyFlatSpec with Matchers with MockFactory with 
     override protected val logger: Logger = Logger(mockedLogger)
   }
 
-  private class TestServlet() extends ScalatraServlet with TestLogger {
+  private class TestServlet() extends ScalatraServlet with FutureSupport with TestLogger {
+    implicit protected val executor: ExecutionContext = ExecutionContext.global
 
     get("/") {
       contentType = "text/plain"
@@ -63,6 +66,12 @@ class ServletLoggerSpec extends AnyFlatSpec with Matchers with MockFactory with 
 
     get("/error") {
       throw new IllegalArgumentException("this is an error!!!")
+    }
+
+    get("/future") {
+      Future {
+        Ok("this is a message from the future")
+      }
     }
   }
 
@@ -222,6 +231,25 @@ class ServletLoggerSpec extends AnyFlatSpec with Matchers with MockFactory with 
     }
   }
 
+  it should "not print a response twice when a Future is returned" in {
+    val serverPort = localPort.fold("None")(_.toString)
+
+    infoLogEnabled(2)
+    expectInfoLogMessage(
+      _ startsWith s"request GET http://localhost:$serverPort$testLoggerPath/future",
+      _ contains "remote=127.0.0.1"
+    )
+    expectInfoLogMessage(
+      _ startsWith s"response GET http://localhost:$serverPort$testLoggerPath/future returned status=200",
+      _.toLowerCase contains "content-type -> [text/plain;charset=utf-8]",
+    )
+
+    get(s"$testLoggerPath/future") {
+      body shouldBe "this is a message from the future"
+      status shouldBe 200
+    }
+  }
+
   it should "log when a non-existing route is called" in {
     val serverPort = localPort.fold("None")(_.toString)
 
@@ -237,7 +265,7 @@ class ServletLoggerSpec extends AnyFlatSpec with Matchers with MockFactory with 
     )
 
     get(s"$testLoggerPath/not-existing/") {
-      body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /error</li><li>GET /halted</li><li>GET /unit</li><li>POST /create</li></ul>""")
+      body should startWith("""Requesting "GET /not-existing/" on servlet "/testLoggerPath" but only have: <ul><li>GET /</li><li>GET /:input</li><li>GET /error</li><li>GET /future</li><li>GET /halted</li><li>GET /unit</li><li>POST /create</li></ul>""")
       status shouldBe 404
     }
   }

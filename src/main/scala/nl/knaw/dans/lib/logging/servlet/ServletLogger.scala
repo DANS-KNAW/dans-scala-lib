@@ -19,6 +19,8 @@ import com.typesafe.scalalogging.Logger
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import org.scalatra.{ ActionResult, ScalatraBase }
 
+import scala.concurrent.Future
+
 /**
  * This trait is the base for every servlet logger. It provides two abstract methods: `logRequest`
  * and `logResponse`.
@@ -39,11 +41,10 @@ trait AbstractServletLogger extends ScalatraBase {
   override protected def renderResponse(actionResult: Any): Unit = {
     super.renderResponse(actionResult)
 
-    logResponse {
-      actionResult match {
-        case ar: ActionResult => ar
-        case _ => ActionResult(response.status, actionResult, Map.empty)
-      }
+    actionResult match {
+      case ar: ActionResult => logResponse(ar)
+      case _: Future[_] => // do nothing
+      case _ => logResponse(ActionResult(response.status, actionResult, Map.empty))
     }
   }
 
@@ -108,6 +109,6 @@ trait ServletLogger extends AbstractServletLogger {
 
     val method = request.getMethod
     val requestURL = request.getRequestURL.toString
-    logger.warn(s"response $method $requestURL resulted in an uncaught exception: ${e.getMessage}", e)
+    logger.warn(s"response $method $requestURL resulted in an uncaught exception: ${ e.getMessage }", e)
   }
 }
