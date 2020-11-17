@@ -35,9 +35,6 @@ trait AbstractServletLogger extends ScalatraBase {
     logRequest()
   }
 
-  /**
-   * @inheritdoc
-   */
   override protected def renderResponse(actionResult: Any): Unit = {
     super.renderResponse(actionResult)
 
@@ -101,9 +98,6 @@ trait ServletLogger extends AbstractServletLogger {
    */
   override protected def logResponse(logLine: String): Unit = logger.info(logLine)
 
-  /**
-   * @inheritdoc
-   */
   override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     super.renderUncaughtException(e)
 
