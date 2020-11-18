@@ -17,7 +17,7 @@ package nl.knaw.dans.lib.taskqueue
 
 import java.nio.file.Path
 import java.util
-import java.util.Comparator
+import java.util.{ Collections, Comparator }
 
 import collection.JavaConverters._
 import better.files.{ File, FileMonitor }
@@ -32,11 +32,9 @@ abstract class AbstractInbox(dir: File, comparator: Comparator[Path]) extends De
    * @param q the TaskQueue to put the DepositIngestTasks on
    */
   def enqueue(q: TaskQueue): Unit = {
-    val treeSet = new util.TreeSet[Path](comparator)
-    for(f <- files) {
-      treeSet.add(f.path)
-    }
-    for(p <- treeSet.asScala) {
+    val paths = files.map(_.path).asJava
+    paths.sort(comparator)
+    for(p <- paths.asScala) {
       debug(s"Adding $p")
       createTask(p).foreach(q.add)
     }
