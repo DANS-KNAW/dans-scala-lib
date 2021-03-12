@@ -17,21 +17,26 @@ package nl.knaw.dans.lib.taskqueue
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
+import java.util.concurrent.LinkedBlockingDeque
 import scala.util.Try
 
-/**
- * A TaskQueue that processes all of its tasks synchronously.
- *
- * @tparam T the type of target for the tasks
- */
-class PassiveTaskQueue[T]() extends AbstractTaskQueue[T] with DebugEnhancedLogging {
+abstract class AbstractTaskQueue[T] extends TaskQueue[T] with DebugEnhancedLogging {
+  protected val tasks = new LinkedBlockingDeque[Option[Task[T]]]
 
   /**
-   * Processes items on the queue.
+   * Adds a new task to the queue.
+   *
+   * @param t the task to add
    */
-  def process(): Try[Unit] = Try {
-    trace(())
-    while (runTask(tasks.take())) {}
-    logger.info("Finished processing tasks.")
+  def add(t: Task[T]): Try[Unit] = Try {
+    trace(t)
+    tasks.put(Some(t))
+    debug("Task added to queue")
+  }
+
+  protected def runTask(t: Option[Task[T]]): Boolean = {
+    t.map(_.run().recover {
+      case e: Throwable => logger.warn(s"Task $t failed", e);
+    }).isDefined
   }
 }
