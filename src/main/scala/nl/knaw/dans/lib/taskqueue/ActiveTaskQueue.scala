@@ -46,6 +46,6 @@ class ActiveTaskQueue[T](capacity: Int = 100000) extends AbstractTaskQueue[T] wi
    */
   def stop(): Try[Unit] = Try {
     tasks.clear()
-    tasks.put(Option.empty[Task[T]])
+    runTask(null)
   }
 }

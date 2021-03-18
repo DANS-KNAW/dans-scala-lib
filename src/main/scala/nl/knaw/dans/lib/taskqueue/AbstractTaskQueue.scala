@@ -21,7 +21,7 @@ import java.util.concurrent.LinkedBlockingDeque
 import scala.util.Try
 
 abstract class AbstractTaskQueue[T] extends TaskQueue[T] with DebugEnhancedLogging {
-  protected val tasks = new LinkedBlockingDeque[Option[Task[T]]]
+  protected val tasks = new LinkedBlockingDeque[Task[T]]
 
   /**
    * Adds a new task to the queue.
@@ -30,12 +30,12 @@ abstract class AbstractTaskQueue[T] extends TaskQueue[T] with DebugEnhancedLoggi
    */
   def add(t: Task[T]): Try[Unit] = Try {
     trace(t)
-    tasks.put(Some(t))
+    tasks.put(t)
     debug("Task added to queue")
   }
 
-  protected def runTask(t: Option[Task[T]]): Boolean = {
-    t.map(_.run().recover {
+  protected def runTask(t: Task[T]): Boolean = {
+    Option(t).map(_.run().recover {
       case e: Throwable => logger.warn(s"Task $t failed", e);
     }).isDefined
   }

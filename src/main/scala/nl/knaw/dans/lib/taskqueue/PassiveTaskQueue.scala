@@ -31,7 +31,8 @@ class PassiveTaskQueue[T]() extends AbstractTaskQueue[T] with DebugEnhancedLoggi
    */
   def process(): Try[Unit] = Try {
     trace(())
-    while (runTask(tasks.take())) {}
+    while (runTask(tasks.poll())) {}
     logger.info("Finished processing tasks.")
   }
+
 }
