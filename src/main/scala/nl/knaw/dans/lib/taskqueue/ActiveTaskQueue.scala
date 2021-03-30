@@ -15,10 +15,9 @@
  */
 package nl.knaw.dans.lib.taskqueue
 
-import java.util.concurrent.{ Executors, LinkedBlockingDeque }
-
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
+import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
@@ -27,20 +26,8 @@ import scala.util.Try
  *
  * @param capacity the maximum capacity of the queue
  */
-class ActiveTaskQueue[T](capacity: Int = 100000) extends TaskQueue[T] with DebugEnhancedLogging {
+class ActiveTaskQueue[T](capacity: Int = 100000) extends AbstractTaskQueue[T] with DebugEnhancedLogging {
   private val executionContext: ExecutionContext = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-  private val tasks = new LinkedBlockingDeque[Option[Task[T]]](capacity)
-
-  /**
-   * Adds a new task to the queue.
-   *
-   * @param t the task to add
-   */
-  def add(t: Task[T]): Try [Unit]  = Try {
-    trace(t)
-    tasks.put(Some(t))
-    debug("Task added to queue")
-  }
 
   /**
    * Starts the queue's processing thread.
@@ -53,18 +40,12 @@ class ActiveTaskQueue[T](capacity: Int = 100000) extends TaskQueue[T] with Debug
     })
   }
 
-  private def runTask(t: Option[Task[T]]): Boolean = {
-    t.map(_.run().recover {
-      case e: Throwable => logger.warn(s"Task $t failed", e);
-    }).isDefined
-  }
-
   /**
    * Cancels pending tasks and lets the currently running task finish. Then lets the
    * processing thread terminate.
    */
   def stop(): Try[Unit] = Try {
     tasks.clear()
-    tasks.put(Option.empty[Task[T]])
+    runTask(null)
   }
 }
